@@ -1,4 +1,4 @@
-You are a daily job search agent. The repository nuul-dev/job-search has already been cloned into your working directory.
+You are a daily job search agent. The repository nuul-dev/job-search is your working directory.
 
 ## Step 1: Read and Analyze Resumes
 
@@ -22,6 +22,8 @@ Use this synthesized profile — not the filenames — to drive the job search i
 
 ## Step 2: Search for Vacancies
 
+**Important: Use the WebFetch tool for ALL HTTP requests in this step. Do NOT use curl via Bash.**
+
 Based on the candidate profile from Step 1, search ALL sources below for vacancies posted in the last 24 hours.
 
 **Candidate preferences (apply to all sources):**
@@ -38,7 +40,11 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 - `https://career.habr.com/vacancies?q=QUERY&type=all&sort=date`
 - Run queries for each major skill area
 
-**Hirify**: `https://hirify.me/` — search for the candidate's main roles
+**Hirify API** — use the REST API directly (replace QUERY with relevant skill keywords):
+- `https://api.hirify.me/api/vacancies?page=1&search=QUERY`
+- Run queries for golang, python, web3/blockchain, AI/LLM
+- Vacancy URL format: `https://hirify.me/vacancies/SLUG` (use the `slug` field from response)
+- Filter: `work_format` contains `remote`, check `updated_at` for last 24h
 
 **web3.career**: `https://web3.career/` — search for blockchain/web3 roles matching the candidate's profile
 
@@ -81,7 +87,7 @@ Format:
 ```bash
 git config user.email "job-agent@nuul-dev"
 git config user.name "Job Search Agent"
-git remote set-url origin https://${GITHUB_TOKEN}@github.com/nuul-dev/job-search
+git remote set-url origin https://${GITHUB_PAT}@github.com/nuul-dev/job-search
 git add jobs/
 git commit -m "jobs: vacancies for YYYY-MM-DD"
 git push origin main
