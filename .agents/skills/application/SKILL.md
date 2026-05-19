@@ -109,8 +109,37 @@ Roughly match their message length. Rules:
 5. **Cleanup pass:** search the draft for `—`, `→`, `**`, `;` in casual contexts, `#`, "не X, а Y", "в рамках", "стоит отметить". Rewrite each.
 6. **Length pass:** trim until you're within ~2x their message length.
 7. **Read-aloud test:** would a friend text this to another friend in chat? If it sounds like a press release, rewrite.
+8. **Archive step (mandatory):** save the response to `applications/`. Don't ask permission, just do it as part of the workflow. Then output the response text to the user.
 
-Output the final response as plain text, ready to paste into a chat. No surrounding commentary unless the user asks.
+## Archive format
+
+Filename: `applications/YYYY-MM-DD-{company-slug}-{role-slug}.md`
+- Date prefix sorts entries chronologically.
+- `{company-slug}` and `{role-slug}` are kebab-case, lowercase, transliterated to Latin if needed.
+- If the company is hidden, use `unknown-company` or a project codename.
+
+File contents (Markdown):
+
+```markdown
+# {Vacancy title} — {Company}
+
+- **URL:** {full link to vacancy}
+- **Источник:** {hh.ru / Habr / Hirify / Telegram / direct}
+- **Дата отклика:** YYYY-MM-DD
+- **Статус:** отправлен
+- **ЗП:** {salary if known, else "не указана"}
+- **Формат:** {remote / hybrid / office, employment type}
+
+## Отклик
+
+{the full response text, exactly as sent}
+
+## Заметки
+
+_(пусто; здесь можно добавить детали собеса, ответ рекрутёра и т.д.)_
+```
+
+The status field starts as "отправлен" and the user can update it later (ответили / собес / отказ / оффер). Don't overwrite the user's edits to existing files; if a file already exists for the same vacancy, ask before saving over it.
 
 ## Resources
 

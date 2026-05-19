@@ -17,6 +17,7 @@ Use the answers to tailor all further responses: vacancy filtering, resume rewri
 
 - `resumes/` — resume files (PDF or MD); drop here for editing/review
 - `jobs/` — daily vacancy reports from cron agent (files named `YYYY-MM-DD.md`)
+- `applications/` — archive of отклики sent to recruiters (one Markdown file per vacancy, named `YYYY-MM-DD-{company}-{role}.md`); contains URL, status, and the response text
 - `daily-search-jobs.md` — prompt for the scheduled search agent
 - `.agents/skills/` — skills for this assistant
 
