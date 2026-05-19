@@ -141,6 +141,24 @@ _(пусто; здесь можно добавить детали собеса, 
 
 The status field starts as "отправлен" and the user can update it later (ответили / собес / отказ / оффер). Don't overwrite the user's edits to existing files; if a file already exists for the same vacancy, ask before saving over it.
 
+## Follow-up replies (recruiter sent another question after the first отклик)
+
+When the user asks to write a follow-up reply for a vacancy that already has a file in `applications/`, **append** to the existing file rather than creating a new one.
+
+Add a `## Переписка` section just before `## Заметки` (or append to it if it already exists). Each exchange uses this format:
+
+```markdown
+### YYYY-MM-DD — рекрутёр
+
+> {their message, verbatim}
+
+### YYYY-MM-DD — мой ответ
+
+{your reply}
+```
+
+Order entries chronologically (oldest first). Don't repeat the original `## Отклик` content; that section stays as the first message. Also update the `Статус` field at the top if the situation changed (e.g., `ответили`, `собес`, `тестовое`, `отказ`, `оффер`).
+
 ## Resources
 
 See `examples/responses.md` for paired tone-matching examples covering casual, direct, formal, screening, and cold-outreach cases.
