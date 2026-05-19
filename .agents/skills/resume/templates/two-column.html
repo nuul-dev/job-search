@@ -1,0 +1,117 @@
+<!--
+Two-column resume template, A4 portrait.
+Tested with WeasyPrint. Cyrillic + Latin both render OK.
+
+LAYOUT:
+  - Left sidebar (~68mm): name, role, languages, contacts, skills, education
+  - Right column (~142mm): about, work experience
+
+HOW TO USE:
+  1. Replace all CONTENT placeholders below (search for "REPLACE-")
+  2. Add/remove .skills-category blocks as needed
+  3. Add/remove .exp-bullet rows as needed (3-5 per role is the sweet spot)
+  4. Build via: python3 .agents/skills/resume/scripts/build-pdf.py <this.html> <out.pdf>
+
+LAYOUT NOTES:
+  - DO NOT use flexbox for the top-level page layout — WeasyPrint clips content.
+    Use `display: table` + `table-cell` (already configured below).
+  - Bullets use em dash "—" at the start (not "•" or "-").
+  - Em dash inside bullets is fine for "X — Y" separators.
+-->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; font-size: 9pt; color: #1a1a1a; background: #fff; }
+.page { width: 210mm; min-height: 297mm; display: table; table-layout: fixed; }
+.left { display: table-cell; width: 68mm; padding: 14mm 7mm 14mm 10mm; background: #fff; border-right: 1px solid #e8e8e8; vertical-align: top; }
+.right { display: table-cell; width: 142mm; padding: 14mm 10mm 14mm 9mm; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+.name { font-size: 24pt; font-weight: 700; line-height: 1.05; color: #0d0d0d; margin-bottom: 5mm; }
+.role { font-size: 9.5pt; font-weight: 600; color: #1a1a1a; margin-bottom: 2mm; }
+.languages { font-size: 8pt; color: #777; margin-bottom: 6mm; }
+.section-label { font-size: 7pt; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #999; margin-bottom: 3mm; padding-top: 5mm; border-top: 1px solid #e8e8e8; }
+.contact-item { margin-bottom: 3.5mm; }
+.contact-type { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.5mm; }
+.contact-value { font-size: 8pt; color: #333; word-break: break-all; }
+.skills-category { margin-bottom: 4mm; }
+.skills-cat-label { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 1mm; }
+.skills-cat-value { font-size: 8pt; color: #333; line-height: 1.5; }
+.edu-school { font-size: 8.5pt; font-weight: 600; color: #1a1a1a; margin-bottom: 1mm; }
+.edu-city { font-size: 8pt; color: #555; margin-bottom: 1mm; }
+.edu-spec { font-size: 8pt; color: #555; margin-bottom: 1mm; }
+.edu-years { font-size: 8pt; color: #999; }
+.section-title { font-size: 7pt; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #555; border-bottom: 1px solid #e0e0e0; padding-bottom: 2mm; margin-bottom: 4mm; }
+.about-text { font-size: 8.5pt; color: #333; line-height: 1.55; margin-bottom: 7mm; }
+.exp-header { margin-bottom: 1mm; }
+.exp-title-row { display: table; width: 100%; table-layout: fixed; }
+.exp-title { display: table-cell; font-size: 11pt; font-weight: 700; color: #0d0d0d; }
+.exp-period { display: table-cell; font-size: 8pt; color: #888; white-space: nowrap; text-align: right; width: 38mm; }
+.exp-company { font-size: 8.5pt; font-weight: 500; color: #333; margin-bottom: 1.5mm; }
+.exp-stack { font-size: 7.5pt; color: #888; margin-bottom: 1.5mm; line-height: 1.5; }
+.exp-note { font-size: 7.5pt; color: #888; font-style: italic; margin-bottom: 2mm; }
+.exp-bullets { margin-bottom: 6mm; }
+.exp-bullet { font-size: 8.5pt; color: #222; line-height: 1.5; padding-left: 4mm; text-indent: -4mm; margin-bottom: 2mm; word-wrap: break-word; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ====== LEFT SIDEBAR ====== -->
+<div class="left">
+  <div class="name">REPLACE-FIRSTNAME<br>REPLACE-LASTNAME</div>
+  <div class="role">REPLACE-TARGET-ROLE</div>
+  <div class="languages">REPLACE-LANGUAGES (e.g., English B2 · Русский)</div>
+
+  <div class="section-label">Контакты</div>
+  <div class="contact-item"><div class="contact-type">Email</div><div class="contact-value">REPLACE-EMAIL</div></div>
+  <div class="contact-item"><div class="contact-type">Телефон</div><div class="contact-value">REPLACE-PHONE</div></div>
+  <div class="contact-item"><div class="contact-type">Telegram</div><div class="contact-value">REPLACE-TELEGRAM</div></div>
+  <div class="contact-item"><div class="contact-type">GitHub</div><div class="contact-value">REPLACE-GITHUB</div></div>
+
+  <div class="section-label">Навыки</div>
+  <!-- Repeat .skills-category as many times as needed. Put the MOST RELEVANT category first. -->
+  <div class="skills-category">
+    <div class="skills-cat-label">REPLACE-CATEGORY-LABEL</div>
+    <div class="skills-cat-value">REPLACE-COMMA-SEPARATED-SKILLS</div>
+  </div>
+
+  <div class="section-label">Образование</div>
+  <div class="edu-school">REPLACE-UNIVERSITY</div>
+  <div class="edu-city">REPLACE-CITY</div>
+  <div class="edu-spec">REPLACE-SPECIALTY-AND-DEGREE</div>
+  <div class="edu-years">REPLACE-YEARS</div>
+</div>
+
+<!-- ====== RIGHT COLUMN ====== -->
+<div class="right">
+
+  <div class="section-title">О себе</div>
+  <div class="about-text">REPLACE-2-3-SENTENCES-ABOUT-SPECIALIZATION-AND-FOCUS</div>
+
+  <div class="section-title">Опыт работы — REPLACE-YEARS-TOTAL</div>
+
+  <!-- Repeat this block for each role, newest first -->
+  <div class="exp-header">
+    <div class="exp-title-row">
+      <div class="exp-title">REPLACE-JOB-TITLE</div>
+      <div class="exp-period">REPLACE-LOCATION · REPLACE-DATE-RANGE</div>
+    </div>
+  </div>
+  <div class="exp-company">REPLACE-COMPANY-NAME</div>
+  <div class="exp-stack">REPLACE · STACK · DOTSEPARATED</div>
+  <!-- Optional team note. Remove the div if not needed: -->
+  <div class="exp-note">REPLACE-OPTIONAL-TEAM-NOTE</div>
+  <div class="exp-bullets">
+    <div class="exp-bullet">— REPLACE-BULLET-USING-XYZ-FORMULA</div>
+    <div class="exp-bullet">— REPLACE-BULLET-USING-XYZ-FORMULA</div>
+    <div class="exp-bullet">— REPLACE-BULLET-USING-XYZ-FORMULA</div>
+  </div>
+
+</div>
+
+</div>
+</body>
+</html>

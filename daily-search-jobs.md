@@ -50,6 +50,11 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 
 **Bondex**: `https://bondex.app/` — search for web3/blockchain roles
 
+**GetMatch** — tech job matching platform, search for backend/Go/Python roles:
+- `https://getmatch.ru/vacancies?q=QUERY&s=date`
+- Run queries for golang, python, backend
+- Focus on remote and Russian-speaking team vacancies
+
 **Telegram channels** (public web view, check recent posts):
 - `https://t.me/s/golang_jobs`
 - `https://t.me/s/python_jobs`
@@ -74,7 +79,7 @@ Format:
 ## [Role Group]
 
 ### 🇷🇺 [Название вакансии](URL)
-**Компания:** Название | **Источник:** hh.ru/Habr/Hirify/web3.career/Bondex/Telegram  
+**Компания:** Название | **Источник:** hh.ru/Habr/Hirify/GetMatch/web3.career/Bondex/Telegram  
 **Зарплата:** X–Y ₽/$ (если указана) | **Формат:** Удалённо  
 Краткое описание. Почему подходит кандидату.
 
