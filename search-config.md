@@ -48,7 +48,7 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 
 - `https://api.hirify.me/api/vacancies?page=1&search=QUERY`
 - Run queries for golang, python, web3/blockchain, AI/LLM
-- Vacancy URL format: `https://hirify.me/vacancies/SLUG` (use the `slug` field from response)
+- Vacancy URL format: `https://hirify.me/jobs/SLUG` (use the `slug` field from response verbatim, e.g. `533814-senior-golang-developer-saas`). **Do not** use `/vacancies/SLUG` — that path returns 404. **Do not** shorten or modify the slug.
 - Filter: `work_format` contains `remote`, check `updated_at` for last 24h
 
 **web3.career**: `https://web3.career/` — search for blockchain/web3 roles matching the candidate's profile
