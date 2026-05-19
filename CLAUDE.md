@@ -18,12 +18,12 @@ Use the answers to tailor all further responses: vacancy filtering, resume rewri
 - `resumes/` — resume files (PDF or MD); drop here for editing/review
 - `jobs/` — daily vacancy reports from cron agent (files named `YYYY-MM-DD.md`)
 - `applications/` — archive of отклики sent to recruiters (one Markdown file per vacancy, named `YYYY-MM-DD-{company}-{role}.md`); contains URL, status, and the response text
-- `daily-search-jobs.md` — prompt for the scheduled search agent
+- `search-config.md` — prompt for the scheduled search agent
 - `.agents/skills/` — skills for this assistant
 
 ## How the system works
 
-A scheduled agent (defined in `daily-search-jobs.md`) runs daily:
+A scheduled agent (defined in `search-config.md`) runs daily:
 1. Reads all resumes from `resumes/`
 2. Searches hh.ru, Habr Career, Telegram channels and other sources for matching vacancies
 3. Saves results to `jobs/YYYY-MM-DD.md` and pushes to git

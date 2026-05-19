@@ -10,7 +10,7 @@ Workspace для поиска работы на базе [Claude Code](https://c
 | `jobs/` | Ежедневные отчёты `YYYY-MM-DD.md` с найденными вакансиями. |
 | `applications/` | Архив откликов. Один Markdown-файл на вакансию: URL, статус, история переписки, заметки. |
 | `.agents/skills/` | Скиллы агента: правила, шаблоны, примеры. Загружаются по триггеру. |
-| `daily-search-jobs.md` | Промт для агента ежедневного поиска вакансий. |
+| `search-config.md` | Промт для агента ежедневного поиска вакансий. |
 | `CLAUDE.md` | Главный файл проектных инструкций для Claude Code. |
 
 ## Требования
@@ -57,7 +57,7 @@ claude
 
 ## Ежедневный поиск вакансий
 
-`daily-search-jobs.md` содержит промт для агента поиска. Скрипт `run-job-search.sh` — пример точки входа для запуска через cron или GitHub Actions.
+`search-config.md` содержит промт для агента поиска. Скрипт `run-search.sh` — пример точки входа для запуска через cron или GitHub Actions.
 
 Источники: hh.ru, Habr Career, Hirify, GetMatch, web3.career, Bondex, публичные Telegram-каналы.
 
@@ -69,7 +69,7 @@ claude
 |-----------|-----|
 | Дизайн резюме | `.agents/skills/resume/templates/two-column.html` |
 | Правила откликов | `.agents/skills/application/SKILL.md` |
-| Источники вакансий и фильтры | `daily-search-jobs.md` |
+| Источники вакансий и фильтры | `search-config.md` |
 | Профиль пользователя и общие правила | `CLAUDE.md` |
 
 ## Безопасность

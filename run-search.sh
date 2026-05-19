@@ -6,9 +6,9 @@ export PATH="/home/nuul/.local/bin:$PATH"
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$REPO_DIR/logs"
-LOG_FILE="$LOG_DIR/job-search.log"
-DEBUG_FILE="$LOG_DIR/job-search-debug.log"
-PROMPT_FILE="$REPO_DIR/daily-search-jobs.md"
+LOG_FILE="$LOG_DIR/search.log"
+DEBUG_FILE="$LOG_DIR/search-debug.log"
+PROMPT_FILE="$REPO_DIR/search-config.md"
 
 mkdir -p "$LOG_DIR"
 
@@ -21,7 +21,7 @@ if [ -z "$GITHUB_PAT" ]; then
   exit 1
 fi
 
-log "=== Job search started ==="
+log "=== Search started ==="
 log "Claude: $(which claude) — $(claude --version 2>&1)"
 log "Prompt: $PROMPT_FILE ($(wc -c < "$PROMPT_FILE") bytes)"
 
@@ -39,4 +39,4 @@ log "Claude exited with code: $EXIT_CODE"
 [ $EXIT_CODE -eq 124 ] && log "ERROR: Timed out after 15 minutes"
 [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 124 ] && log "ERROR: See $DEBUG_FILE for details"
 
-log "=== Job search finished ==="
+log "=== Search finished ==="
