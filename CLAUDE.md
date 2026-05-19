@@ -16,17 +16,17 @@ Use the answers to tailor all further responses: vacancy filtering, resume rewri
 ## Directory structure
 
 - `resumes/` — resume files (PDF or MD); drop here for editing/review
-- `jobs/` — daily vacancy reports from cron agent (files named `YYYY-MM-DD.md`)
+- `jobs/` — vacancy reports from the search agent (files named `YYYY-MM-DD-HHMM.md`, one per run)
 - `applications/` — archive of отклики sent to recruiters (one Markdown file per vacancy, named `YYYY-MM-DD-{company}-{role}.md`); contains URL, status, and the response text
 - `search-config.md` — prompt for the scheduled search agent
 - `.agents/skills/` — skills for this assistant
 
 ## How the system works
 
-A scheduled agent (defined in `search-config.md`) runs daily:
+The search agent (defined in `search-config.md`) is launched locally via `run-search.sh`:
 1. Reads all resumes from `resumes/`
 2. Searches hh.ru, Habr Career, Telegram channels and other sources for matching vacancies
-3. Saves results to `jobs/YYYY-MM-DD.md` and pushes to git
+3. Saves results to `jobs/YYYY-MM-DD-HHMM.md` (one file per run)
 
 When the user opens a chat, check if there are new files in `jobs/` that haven't been discussed yet.
 
@@ -40,7 +40,7 @@ When the user opens a chat, check if there are new files in `jobs/` that haven't
 
 ## How to work with vacancies
 
-When the user asks to process vacancies (or when you notice a new `jobs/YYYY-MM-DD.md`):
+When the user asks to process vacancies (or when you notice a new file in `jobs/`):
 - Read the file and summarize top matches briefly
 - Ask which vacancy to focus on
 - For the chosen vacancy: compare with resume, identify gaps, suggest improvements

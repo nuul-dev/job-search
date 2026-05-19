@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-export HOME=/home/nuul
-export PATH="/home/nuul/.local/bin:$PATH"
-
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$REPO_DIR/logs"
 LOG_FILE="$LOG_DIR/search.log"
@@ -14,15 +11,13 @@ mkdir -p "$LOG_DIR"
 
 log() { echo "[$(date -u '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-[ -f "$REPO_DIR/.env" ] && set -a && source "$REPO_DIR/.env" && set +a
-
-if [ -z "$GITHUB_PAT" ]; then
-  log "ERROR: GITHUB_PAT is not set. Add it to .env or export before running."
+if ! command -v claude >/dev/null 2>&1; then
+  log "ERROR: claude CLI not found. Install: https://claude.com/claude-code"
   exit 1
 fi
 
 log "=== Search started ==="
-log "Claude: $(which claude) — $(claude --version 2>&1)"
+log "Claude: $(which claude) ($(claude --version 2>&1))"
 log "Prompt: $PROMPT_FILE ($(wc -c < "$PROMPT_FILE") bytes)"
 
 cd "$REPO_DIR"
@@ -32,7 +27,7 @@ timeout 900 claude \
   --print \
   --dangerously-skip-permissions \
   --debug-file "$DEBUG_FILE" \
-  "$(envsubst < "$PROMPT_FILE")" >> "$LOG_FILE" 2>&1
+  "$(cat "$PROMPT_FILE")" >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 log "Claude exited with code: $EXIT_CODE"
