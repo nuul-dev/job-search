@@ -62,7 +62,17 @@ Key principles:
 - Never write "responsible for" or "participated in" — show ownership and impact
 - Tailor to vacancy: mirror their terminology, surface matching experience
 
-## Cover letter style
+## Job application responses (отклики, chat replies to recruiters)
+
+Follow `.agents/skills/application/SKILL.md` for all chat replies to recruiters and short application messages.
+
+Key principles:
+- Mirror the recruiter's tone (casual / friendly / business / direct)
+- Plain text only: no em dashes, no arrows, no bold/headers, no markdown
+- Length matched to recruiter's message; never exceed it more than 2x
+- Sounds like a human in chat, not a press release
+
+## Cover letter style (formal, attached to a full application)
 
 - Match the language of the vacancy (Russian vacancy → Russian letter, English → English)
 - Short and confident — 3–4 paragraphs, max 250 words
