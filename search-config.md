@@ -23,7 +23,10 @@ Use this synthesized profile — not the filenames — to drive the job search i
 
 ## Step 2: Search for Vacancies
 
-**Important: Use the WebFetch tool for ALL HTTP requests in this step. Do NOT use curl via Bash.**
+**HTTP rules:**
+
+- Default to the WebFetch tool for HTTP requests.
+- **Exception:** hh.ru API requires a real User-Agent header per [official rules](https://github.com/hhru/api/blob/master/docs/general.md#user-agent-required); WebFetch's default UA gets 403. Use `curl` via Bash for hh.ru (see below).
 
 Based on the candidate profile from Step 1, search ALL sources below for vacancies posted in the last 24 hours.
 
@@ -32,12 +35,19 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 - Strongly prefer companies with Russian-speaking teams or Russian roots (even if remote/international)
 - Remote positions preferred
 - Mark each vacancy with 🇷🇺 if the team is likely Russian-speaking
+- **Target level: Middle and above.** Include Middle, Middle+, Senior, and Lead vacancies. Do NOT filter out Middle roles just because the resume shows lead experience — the candidate is open to them. A vacancy that says "Middle Go developer" with a matching stack is a valid result.
+- When building search queries, always include both bare skill keywords (e.g. `golang`) and level-explicit variants (e.g. `golang middle`, `golang senior`). This ensures middle-tier postings are not missed.
 
-**hh.ru API** — build search queries from the actual skills found in resumes (replace YESTERDAY with yesterday's date YYYY-MM-DD):
+**hh.ru API** — use curl with a proper User-Agent containing the user's email (hh.ru API requirement). `run-search.sh` loads `HH_USER_EMAIL` from `.env` into the environment, so the command below works as-is — bash expands `$HH_USER_EMAIL` itself, no substitution needed from the agent:
 
-- `https://api.hh.ru/vacancies?text=QUERY&date_from=YESTERDAY&per_page=20&schedule=remote`
+```bash
+curl -sS -A "JobSearchAgent (${HH_USER_EMAIL:-anonymous@example.com})" "https://api.hh.ru/vacancies?text=QUERY&date_from=YESTERDAY&per_page=20&schedule=remote"
+```
+
+- Build queries from the actual skills found in resumes; URL-encode `QUERY`; replace `YESTERDAY` with yesterday's date `YYYY-MM-DD`
 - Run at least 3 queries covering the candidate's different skill areas
-- Also try without `schedule=remote` for Moscow area: `&area=1`
+- Also try without `schedule=remote` for Moscow area: append `&area=1`
+- **If curl returns HTTP 403, "captcha required", or an empty/HTML body instead of JSON** — the network/IP is blocked by hh.ru (almost always a VPN/egress block), NOT a config bug. Do **not** retry, do **not** try to bypass. Skip hh.ru entirely, continue with the other sources, and note in the final report: `hh.ru: недоступно из этой сети (вероятно IP/VPN-блок)`.
 
 **Habr Career**:
 
@@ -61,12 +71,7 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 - Run queries for golang, python, backend
 - Focus on remote and Russian-speaking team vacancies
 
-**Telegram channels** (public web view, check recent posts):
-
-- `https://t.me/s/golang_jobs`
-- `https://t.me/s/python_jobs`
-- `https://t.me/s/ai_jobs_ru`
-- `https://t.me/s/cryptojobslist`
+**Telegram channels** — disabled by default. The public web preview (`t.me/s/<channel>`) does not reliably render job posts, so it produced near-zero useful vacancies in past runs. Skip Telegram unless a Bot API token is configured for the channel.
 
 ## Step 3: Create Report
 
@@ -89,7 +94,7 @@ Format:
 
 ### 🇷🇺 [Название вакансии](URL)
 
-**Компания:** Название | **Источник:** hh.ru/Habr/Hirify/GetMatch/web3.career/Bondex/Telegram  
+**Компания:** Название | **Источник:** hh.ru/Habr/Hirify/GetMatch/web3.career/Bondex  
 **Зарплата:** X–Y ₽/$ (если указана) | **Формат:** Удалённо  
 Краткое описание. Почему подходит кандидату.
 

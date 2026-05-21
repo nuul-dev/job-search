@@ -74,10 +74,20 @@ Rewrite if you catch any of these:
 
 ## Length matching
 
-Roughly match their message length. Rules:
+**Cold отклик (первое сообщение на вакансию, без предыдущей переписки): 3-4 предложения максимум, считая прощание.**
+
+Никаких абзацев с разбивкой по проектам и стеку. Структура:
+1. Greeting ("Привет!" / "Добрый день!").
+2. 1-2 содержательных предложения с самым сильным match-аргументом и одним числом/проектом.
+3. Одна короткая строка с готовностью/контактом ("Готов выйти на этой неделе, github.com/...").
+4. Короткое человеческое прощание ("Спасибо за уделенное время, хорошего дня!").
+
+Если хочется добавить ещё детали — не надо, лучше оставить рекрутёру повод задать вопрос.
+
+Для follow-up ответов в `## Переписка` (рекрутёр уже задал конкретный вопрос) — матчим длину под вопрос:
 - 1-line ping → 2-4 line answer.
 - 3-question screening → 1 short paragraph per question.
-- Long detailed pitch → you can match the depth, but never exceed their length 2x.
+- Long detailed pitch → можно матчить глубину, но не превышать их длину более чем в 2x.
 
 ## Structure inside the response
 
@@ -91,7 +101,7 @@ Roughly match their message length. Rules:
 1. Direct answers to every question. No dodging.
 2. One concrete proof: a number, a specific project, a measurable result.
 3. Honest line on availability if they ask.
-4. End naturally. No "буду рад любой обратной связи" or "I look forward to hearing from you".
+4. End with a short human goodbye ("Спасибо за уделенное время, хорошего дня!" / "Спасибо, что прочитали!"). Don't use corporate filler like "буду рад любой обратной связи" or "I look forward to hearing from you".
 
 ## What NOT to include
 
