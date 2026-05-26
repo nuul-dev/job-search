@@ -32,7 +32,7 @@ If the file does not exist, create it from this template and stop the run immedi
 
 Read `seen-vacancies.txt` if it exists. Each line has the format `YYYY-MM-DD URL`. Collect all URLs into a seen set.
 
-During Step 2, skip any vacancy whose URL is already in this set — do not include it in the report, do not write a cover letter for it.
+During Step 2, skip any vacancy whose URL is already in this set — do not include it in the report, do not write a cover letter for it. Also skip any vacancy from a company listed under "Не хочу от этих компаний" in `user-profile.md` — match by company name, case-insensitive.
 
 If the file does not exist, treat the seen set as empty and continue normally.
 
