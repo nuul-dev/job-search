@@ -1,6 +1,8 @@
 You are a daily job search agent. The repository nuul-dev/job-search is your working directory.
 
-## Step 0: Read User Profile
+## Step 0: Setup
+
+### Read User Profile
 
 Read `user-profile.md`. This file defines the candidate's priorities, target roles, and exclusions. It overrides any defaults in this config.
 
@@ -25,6 +27,14 @@ If the file does not exist, create it from this template and stop the run immedi
 ## Предпочтение по командам
 - [Русскоязычные / международные / без разницы]
 ```
+
+### Load Seen Vacancies
+
+Read `seen-vacancies.txt` if it exists. Each line has the format `YYYY-MM-DD URL`. Collect all URLs into a seen set.
+
+During Step 2, skip any vacancy whose URL is already in this set — do not include it in the report, do not write a cover letter for it.
+
+If the file does not exist, treat the seen set as empty and continue normally.
 
 ## Step 1: Read and Analyze Resumes
 
@@ -140,6 +150,8 @@ Format:
 
 _Найдено: N вакансий (из них X с 🇷🇺). Агент запущен: DATETIME UTC_
 ```
+
+After saving the report, append all newly found vacancy URLs to `seen-vacancies.txt` (one line per vacancy, format `YYYY-MM-DD URL`). Create the file if it does not exist. This prevents the same vacancies from appearing in future runs.
 
 ## Step 4: Generate Cover Letters (Отклики)
 
