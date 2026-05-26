@@ -59,10 +59,7 @@ Use this synthesized profile — not the filenames — to drive the job search i
 
 ## Step 2: Search for Vacancies
 
-**HTTP rules:**
-
-- Default to the WebFetch tool for HTTP requests.
-- **Exception:** hh.ru API requires a real User-Agent header per [official rules](https://github.com/hhru/api/blob/master/docs/general.md#user-agent-required); WebFetch's default UA gets 403. Use `curl` via Bash for hh.ru (see below).
+**HTTP rules:** use the WebFetch tool for all sources. For hh.ru, use the RSS feed via WebFetch (see below) — the JSON API is IP-blocked.
 
 Based on the candidate profile from Step 1, search ALL sources below for vacancies posted in the last 24 hours.
 
@@ -73,25 +70,22 @@ Based on the candidate profile from Step 1, search ALL sources below for vacanci
 - When building search queries, always include both bare skill keywords (e.g. `golang`) and level-explicit variants (e.g. `golang middle`). For any AI/ML/LLM roles in the candidate's priority list, also add `junior` variants.
 - Include only vacancies that genuinely match the candidate's priority stack and level. Skip roles explicitly listed under "Что НЕ ищу".
 
-**hh.ru API** — use curl with a proper User-Agent containing the user's email (hh.ru API requirement). `run-search.sh` loads `HH_USER_EMAIL` from `.env` into the environment, so the command below works as-is — bash expands `$HH_USER_EMAIL` itself, no substitution needed from the agent:
-
-```bash
-curl -sS -A "JobSearchAgent (${HH_USER_EMAIL:-anonymous@example.com})" "https://api.hh.ru/vacancies?text=QUERY&date_from=YESTERDAY&per_page=20&schedule=remote"
-```
-
 **Query construction (apply to all sources):**
 
 Build queries from the candidate's stack and priority roles in `user-profile.md`. For each skill or role:
 - Always run a bare keyword query (e.g. `golang`) and a level-explicit variant (e.g. `golang middle`)
 - Run at least 3 queries per source, covering different priority areas from the profile
 
-**hh.ru API** — URL-encode `QUERY`; replace `YESTERDAY` with yesterday's date `YYYY-MM-DD`. Run both with `schedule=remote` and with `&area=1` (Moscow):
+**hh.ru RSS** — the JSON API is IP-blocked from non-Russian IPs; use the RSS feed instead, which has no such restriction. URL-encode `QUERY`:
 
-```bash
-curl -sS -A "JobSearchAgent (${HH_USER_EMAIL:-anonymous@example.com})" "https://api.hh.ru/vacancies?text=QUERY&date_from=YESTERDAY&per_page=20&schedule=remote"
+```
+https://hh.ru/search/vacancy/rss?text=QUERY&area=1&schedule=remote&sort_by=publication_time
 ```
 
-- **If curl returns HTTP 403, "captcha required", or an empty/HTML body instead of JSON** — the network/IP is blocked by hh.ru. Do **not** retry or bypass. Skip hh.ru entirely and note in the report: `hh.ru: недоступно из этой сети (вероятно IP/VPN-блок)`.
+- Run with `schedule=remote` for remote roles; also run without it (drop `&schedule=remote`) to catch hybrid/office roles from Russian-speaking teams
+- Parse the XML: each `<item>` has `<title>`, `<link>`, `<pubDate>`, and `<description>` (CDATA with company name, region, salary)
+- Filter by `<pubDate>`: keep only vacancies published in the last 24 hours
+- If the RSS is unreachable or returns non-XML, skip hh.ru and note it in the report
 
 **Habr Career**:
 

@@ -116,7 +116,6 @@ JOBS_BEFORE=$(find  "$REPO_DIR/jobs"    -maxdepth 1 -type f -name '*.md'        
 log "=== job search ==="
 log "model:   claude-haiku-4-5  timeout: $((TIMEOUT_SEC / 60))m"
 log "resumes: $RESUME_COUNT   jobs before: $JOBS_BEFORE"
-[ -z "${HH_USER_EMAIL:-}" ] && log "warn    HH_USER_EMAIL not set — hh.ru may 403 (check .env)"
 log "──────────────────────────────────────────────────────"
 
 # ── JQ filter: only meaningful events, no thinking/reasoning ────────────
