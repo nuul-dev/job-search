@@ -123,13 +123,7 @@ Sorting priority within each group:
 2. Remote (any team)
 3. Other
 
-**Role groups to use in the report:**
-
-- Backend / Go / Python
-- AI / ML / LLM Developer (Junior and Middle included)
-- Enterprise AI / AI for Business
-- Web3 / Blockchain
-- Other
+**Role groups to use in the report:** derive from the priority list in `user-profile.md` — one group per priority item, in the same order. Add "Other" at the end for anything that doesn't fit the listed priorities.
 
 Format:
 
