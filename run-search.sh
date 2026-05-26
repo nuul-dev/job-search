@@ -128,21 +128,9 @@ JQ_FILTER='
       ($e.message.content[]? |
         if .type == "tool_use" then
           .name as $n | .input as $in |
-          if $n == "WebFetch" then
-            ($in.url // "") as $url |
-            if   ($url | test("hh\\.ru"))       then "search  hh.ru        · " + ($url | gsub(".*text=|&.*";"") | @uri | gsub("%2[0Bb]";" ") | .[0:55])
-            elif ($url | test("career\\.habr"))  then "search  Habr Career  · " + ($url | gsub(".*[?&]q=|&.*";"") | .[0:55])
-            elif ($url | test("hirify"))         then "search  Hirify       · " + ($url | gsub(".*search=|&.*";"") | .[0:55])
-            elif ($url | test("getmatch"))       then "search  GetMatch     · " + ($url | gsub(".*[?&]q=|&.*";"") | .[0:55])
-            elif ($url | test("web3\\.career"))  then "search  web3.career"
-            elif ($url | test("bondex"))         then "search  Bondex"
-            else empty end
-          elif $n == "Bash" then
+          if $n == "Bash" then
             ($in.command // "") as $cmd |
-            if   ($cmd | test("pdftotext|pdfplumber")) then "read    resumes/"
-            elif ($cmd | test("curl.*hh\\.ru"))        then
-              (($cmd | capture("text=(?<q>[^&\" ]+)") | .q) // "?") as $q |
-              "search  hh.ru API   · " + ($q | @uri | gsub("%2[0Bb]";" ") | .[0:55])
+            if ($cmd | test("pdftotext|pdfplumber")) then "read    resumes/"
             else empty end
           elif $n == "Read" then
             ($in.file_path // "") as $p |
@@ -171,7 +159,31 @@ JQ_FILTER='
     else empty end
 '
 
-# ── Run ──────────────────────────────────────────────────────────────────
+# ── Step 1: Fetch vacancies (Go) ─────────────────────────────────────────
+FETCH_BIN="$REPO_DIR/scripts/fetch/fetch"
+if [ ! -f "$FETCH_BIN" ]; then
+  log "build   scripts/fetch/..."
+  ( cd "$REPO_DIR/scripts/fetch" && go build -o "$FETCH_BIN" . ) 2>&1 | while IFS= read -r line; do log "        $line"; done
+fi
+
+log "fetch   running..."
+RAW_PATH=""
+while IFS= read -r line; do
+  if [ -f "$line" ]; then
+    RAW_PATH="$line"
+  else
+    log "        $line"
+  fi
+done < <("$FETCH_BIN" 2>&1)
+
+if [ -z "$RAW_PATH" ]; then
+  log "error   fetch produced no output file"; exit 1
+fi
+RAW_COUNT=$(jq '.vacancies | length' "$RAW_PATH" 2>/dev/null || echo "?")
+log "fetch   done — $RAW_COUNT vacancies → $(basename "$RAW_PATH")"
+log "──────────────────────────────────────────────────────"
+
+# ── Step 2: Rank + write report (Claude) ─────────────────────────────────
 [ "$IS_TTY" = 1 ] && { _spinner & echo $! > "$SPIN_PID_FILE"; }
 
 set +e
@@ -209,6 +221,12 @@ case "$EXIT_CODE" in
     LATEST=$(find "$REPO_DIR/jobs" -maxdepth 1 -type f -name '*.md' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n1 | cut -d' ' -f2-)
     log "done    $((ELAPSED/60))m $((ELAPSED%60))s  ·  +$((JOBS_AFTER - JOBS_BEFORE)) report(s)  ·  +${NEW_LETTERS} letter(s)"
     [ -n "$LATEST" ] && log "report  $LATEST"
+    # Mark all fetched vacancies as seen so they don't re-appear in future runs
+    if [ -n "$RAW_PATH" ] && command -v jq >/dev/null 2>&1; then
+      TODAY=$(date -u +%Y-%m-%d)
+      jq -r '.vacancies[].url' "$RAW_PATH" | sed "s/^/$TODAY /" >> "$REPO_DIR/seen-vacancies.txt"
+      log "seen    updated ($(jq '.vacancies | length' "$RAW_PATH") URLs)"
+    fi
     ;;
   124) log "error   timeout after $((TIMEOUT_SEC/60))m — see $DEBUG_FILE"; exit 124 ;;
   *)   log "error   claude exited $EXIT_CODE — see $DEBUG_FILE";           exit "$EXIT_CODE" ;;
