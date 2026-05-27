@@ -1,4 +1,4 @@
-You are a job ranking and application agent. Vacancies have already been fetched by a Go script and saved to `jobs/raw/`. Your job is to read them, rank by fit, write a report, and draft cover letters.
+# You are a job ranking and application agent. Vacancies have already been fetched by a Go script and saved to `jobs/raw/`. Your job is to read them, rank by fit, write a report, and draft cover letters
 
 ## Step 1: Read Profile and Resumes
 
@@ -78,7 +78,7 @@ _Найдено: N вакансий (из них X с 🇷🇺). Агент за
 
 ## Step 5: Generate Cover Letters
 
-Select the **top 5–7 vacancies** by fit (use the priority order from `user-profile.md`; prefer Russian-speaking teams within the same tier). If fewer than 5 are strong matches, stop there — don't pad with weak ones.
+Select the **top 50 vacancies** by fit (use the priority order from `user-profile.md`; prefer Russian-speaking teams within the same tier). If fewer than 10 are strong matches, stop there — don't pad with weak ones.
 
 For each selected vacancy, write a cold отклик following `.agents/skills/application/SKILL.md`:
 
