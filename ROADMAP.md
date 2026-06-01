@@ -32,14 +32,14 @@
 
 ## Этап 2: Схема БД
 
-- [ ] `users` (id, email, created_at) — single row пока, чтобы FK работали
-- [ ] `profiles` (user_id PK, priorities jsonb, search_queries text[], stack text[], location text, work_format jsonb, blacklist_companies text[], exclusions jsonb, updated_at)
-- [ ] `vacancies` (id, source, source_external_id, url, title, company, salary, location, work_format, description, raw jsonb, fetched_at, published_at, UNIQUE(source, source_external_id))
-- [ ] `vacancy_scores` (vacancy_id, user_id, score, group_name, notes, ranked_at) — отдельно, чтобы ранкер мог пересчитывать без потери вакансии
-- [ ] `applications` (id, vacancy_id, user_id, status enum [draft, sent, replied, screen, test, offer, rejected, archived], draft_body, sent_at, created_at, updated_at)
-- [ ] `application_messages` (id, application_id, author enum [me, recruiter], body, sent_at) — переписка
-- [ ] `fetch_runs` (id, started_at, finished_at, source, fetched_count, error) — заменит логи
-- [ ] Индексы: `vacancies(fetched_at DESC)`, `vacancies(source, source_external_id)`, `vacancy_scores(user_id, score DESC)`, `applications(user_id, status)`
+- [x] `users` (id, email, created_at) — single row пока, чтобы FK работали
+- [x] `profiles` (user_id PK, priorities jsonb, search_queries text[], stack text[], location text, work_format jsonb, blacklist_companies text[], exclusions jsonb, updated_at)
+- [x] `vacancies` (id, source, source_external_id, url, title, company, salary, location, work_format, description, raw jsonb, fetched_at, published_at, UNIQUE(source, source_external_id))
+- [x] `vacancy_scores` (vacancy_id, user_id, score, group_name, notes, ranked_at) — отдельно, чтобы ранкер мог пересчитывать без потери вакансии
+- [x] `applications` (id, vacancy_id, user_id, status enum [draft, sent, replied, screen, test, offer, rejected, archived], draft_body, sent_at, created_at, updated_at)
+- [x] `application_messages` (id, application_id, author enum [me, recruiter], body, sent_at) — переписка
+- [x] `fetch_runs` (id, started_at, finished_at, source, fetched_count, error) — заменит логи
+- [x] Индексы: `vacancies(fetched_at DESC)`, `vacancies(source, source_external_id)`, `vacancy_scores(user_id, score DESC)`, `applications(user_id, status)`
 
 ## Этап 3: Бекенд-скелет
 
