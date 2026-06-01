@@ -18,12 +18,14 @@ Use the answers to tailor all further responses: vacancy filtering, resume rewri
 - `resumes/` — resume files (PDF or MD); drop here for editing/review
 - `jobs/` — vacancy reports from the search agent (files named `YYYY-MM-DD-HHMM.md`, one per run)
 - `applications/` — archive of отклики sent to recruiters (one Markdown file per vacancy, named `YYYY-MM-DD-{company}-{role}.md`); contains URL, status, and the response text
-- `search-config.md` — prompt for the scheduled search agent
+- `config/` — search agent prompt (`search-config.md`) and candidate profile (`user-profile.md`, plus `user-profile.example.md` template)
+- `backend/fetch/` — Go vacancy fetcher (hh.ru, Hirify, Habr Career); built and run by `run-search.sh`
+- `db/migrations/` — versioned SQL migrations (goose); see `docker-compose.yml` + `Makefile` for the local Postgres stack
 - `.agents/skills/` — skills for this assistant
 
 ## How the system works
 
-The search agent (defined in `search-config.md`) is launched locally via `run-search.sh`:
+The search agent (defined in `config/search-config.md`) is launched locally via `run-search.sh`:
 1. Reads all resumes from `resumes/`
 2. Searches hh.ru, Habr Career, Telegram channels and other sources for matching vacancies
 3. Saves results to `jobs/YYYY-MM-DD-HHMM.md` (one file per run)

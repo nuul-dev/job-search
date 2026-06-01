@@ -7,7 +7,7 @@ LOG_DIR="$REPO_DIR/logs"
 LOG_FILE="$LOG_DIR/search.log"
 DEBUG_FILE="$LOG_DIR/search-debug.log"
 RAW_FILE="$LOG_DIR/search-stream.jsonl"
-PROMPT_FILE="$REPO_DIR/search-config.md"
+PROMPT_FILE="$REPO_DIR/config/search-config.md"
 TIMEOUT_SEC=900
 
 mkdir -p "$LOG_DIR"
@@ -160,10 +160,10 @@ JQ_FILTER='
 '
 
 # ── Step 1: Fetch vacancies (Go) ─────────────────────────────────────────
-FETCH_BIN="$REPO_DIR/scripts/fetch/fetch"
+FETCH_BIN="$REPO_DIR/backend/fetch/fetch"
 if [ ! -f "$FETCH_BIN" ]; then
-  log "build   scripts/fetch/..."
-  ( cd "$REPO_DIR/scripts/fetch" && go build -o "$FETCH_BIN" . ) 2>&1 | while IFS= read -r line; do log "        $line"; done
+  log "build   backend/fetch/..."
+  ( cd "$REPO_DIR/backend/fetch" && go build -o "$FETCH_BIN" . ) 2>&1 | while IFS= read -r line; do log "        $line"; done
 fi
 
 log "fetch   running..."

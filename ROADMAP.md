@@ -4,7 +4,7 @@
 
 Персональный AI-ассистент для поиска работы. Фетчер на Go вытягивает свежие вакансии с hh.ru, Hirify и Habr Career, ранкер на Claude API скорит их по профилю кандидата, отдельный шаг генерирует черновики откликов через тот же Claude по skill-промту.
 
-Сейчас всё работает на файловой системе: Markdown-отчёты в `jobs/`, отклики в `applications/`, профиль в `user-profile.md`. Этот документ описывает миграцию на полноценный сервис: PostgreSQL как single source of truth, Go-бекенд с HTTP API, React-фронт для inbox/kanban.
+Сейчас всё работает на файловой системе: Markdown-отчёты в `jobs/`, отклики в `applications/`, профиль в `config/user-profile.md`. Этот документ описывает миграцию на полноценный сервис: PostgreSQL как single source of truth, Go-бекенд с HTTP API, React-фронт для inbox/kanban.
 
 ## Стек
 
@@ -24,11 +24,11 @@
 
 ## Этап 1: Инфра
 
-- [ ] `docker-compose.yml` в корне: postgres:16 + adminer (порты 5432, 8080)
-- [ ] Миграционный инструмент: **goose** (один бинарь, SQL-миграции, нет магии)
-- [ ] `db/migrations/` — папка под версионируемые миграции
-- [ ] `.env.example` с `DATABASE_URL`, `CLAUDE_API_KEY`, `HH_USER_EMAIL`
-- [ ] `Makefile` или `scripts/dev.sh`: `db-up`, `db-down`, `db-reset`, `migrate-up`, `migrate-status`
+- [x] `docker-compose.yml` в корне: postgres:16 + adminer (порты 5432, 8080)
+- [x] Миграционный инструмент: **goose** (один бинарь, SQL-миграции, нет магии)
+- [x] `db/migrations/` — папка под версионируемые миграции
+- [x] `.env.example` с `DATABASE_URL`, `CLAUDE_API_KEY`, `HH_USER_EMAIL`
+- [x] `Makefile` или `scripts/dev.sh`: `db-up`, `db-down`, `db-reset`, `migrate-up`, `migrate-status`
 
 ## Этап 2: Схема БД
 
@@ -55,7 +55,7 @@
 
 Одноразовый скрипт `cmd/migrate-md/main.go`.
 
-- [ ] Парсер `user-profile.md` → `profiles`
+- [ ] Парсер `config/user-profile.md` → `profiles`
 - [ ] Парсер `jobs/raw/*.json` → `vacancies`
 - [ ] Парсер `jobs/*.md` — извлечь только score/group/notes → `vacancy_scores`
 - [ ] Парсер `applications/*.md` — фронт-блок + `## Отклик` + `## Переписка` → `applications` + `application_messages`
@@ -65,7 +65,7 @@
 
 ## Этап 5: Фетчер в БД
 
-- [ ] Перенести `scripts/fetch/` → `backend/internal/fetcher/`
+- [ ] Перенести `backend/fetch/` → `backend/internal/fetcher/`
 - [ ] Сменить выходной слой: вместо `jobs/raw/*.json` — `INSERT INTO vacancies ... ON CONFLICT (source, source_external_id) DO UPDATE SET ...`
 - [ ] Каждый запуск — строка в `fetch_runs`
 - [ ] Команда: `cmd/fetch/main.go` (standalone бинарь для cron)

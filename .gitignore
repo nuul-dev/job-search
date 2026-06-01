@@ -5,7 +5,7 @@ jobs/*.md
 playground/
 resumes/
 applications/
-user-profile.md
+config/user-profile.md
 seen-vacancies.txt
 jobs/raw/
-scripts/fetch/fetch
+backend/fetch/fetch

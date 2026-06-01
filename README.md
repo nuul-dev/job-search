@@ -84,7 +84,8 @@ claude
 | Дизайн резюме | `.agents/skills/resume/templates/two-column.html` |
 | Правила написания резюме | `.agents/skills/resume/SKILL.md` |
 | Правила откликов | `.agents/skills/application/SKILL.md` |
-| Источники и фильтры поиска | `search-config.md` |
+| Источники и фильтры поиска | `config/search-config.md` |
+| Профиль кандидата | `config/user-profile.md` |
 | Профиль и общие инструкции | `CLAUDE.md` |
 
 ## Лицензия

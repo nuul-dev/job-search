@@ -2,7 +2,7 @@
 
 ## Step 1: Read Profile and Resumes
 
-Read `user-profile.md` — candidate priorities, exclusions, stack, preferred format, team preferences.
+Read `config/user-profile.md` — candidate priorities, exclusions, stack, preferred format, team preferences.
 
 Read all PDF files in `resumes/`:
 
@@ -46,13 +46,13 @@ Vacancies are already deduplicated and filtered against the seen list and compan
 
 ## Step 3: Rank and Filter
 
-Score each vacancy against the candidate profile from Step 1 and priorities from `user-profile.md`:
+Score each vacancy against the candidate profile from Step 1 and priorities from `config/user-profile.md`:
 
 - **Include:** roles that match priority stack and level. Mark 🇷🇺 if company name or description suggests Russian-speaking team.
 - **Skip:** roles listed under "Что НЕ ищу" in the profile, or that clearly don't match the stack.
 - **Sort within each group:** Russian-speaking + remote first, then remote (any team), then other.
 
-Groups are derived from the priority list in `user-profile.md` — one group per priority item, in order. Add "Other" for anything that doesn't fit.
+Groups are derived from the priority list in `config/user-profile.md` — one group per priority item, in order. Add "Other" for anything that doesn't fit.
 
 ## Step 4: Write Report
 
@@ -78,7 +78,7 @@ _Найдено: N вакансий (из них X с 🇷🇺). Агент за
 
 ## Step 5: Generate Cover Letters
 
-Select the **top 50 vacancies** by fit (use the priority order from `user-profile.md`; prefer Russian-speaking teams within the same tier). If fewer than 10 are strong matches, stop there — don't pad with weak ones.
+Select the **top 50 vacancies** by fit (use the priority order from `config/user-profile.md`; prefer Russian-speaking teams within the same tier). If fewer than 10 are strong matches, stop there — don't pad with weak ones.
 
 For each selected vacancy, write a cold отклик following `.agents/skills/application/SKILL.md`:
 
