@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Поиск работы · Вакансии</title>
+  <script>
+    // Apply before styles load to avoid a flash of the other theme.
+    (() => {
+      let theme = 'dark';
+      try {
+        const saved = localStorage.getItem('job-inbox-theme');
+        if (saved === 'light' || saved === 'dark') theme = saved;
+      } catch {}
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Поиск работы, главная"><span class="brand-icon">↗</span>Поиск работы</a>
+    <p class="workspace-label">Личное пространство</p>
+    <nav aria-label="Вакансии">
+      <button class="nav active" data-view="all">Все вакансии <span id="all-count">0</span></button>
+      <button class="nav" data-view="saved">Избранное <span id="saved-count">0</span></button>
+      <button class="nav" data-view="applied">Откликнулся <span id="applied-count">0</span></button>
+      <button class="nav" data-view="hidden">Отложено <span id="hidden-count">0</span></button>
+    </nav>
+    <button id="theme-toggle" class="secondary theme-toggle" type="button" aria-pressed="true"><span>Тёмная тема</span><span aria-hidden="true" id="theme-icon">☾</span></button>
+    <div class="sidebar-note"><span class="local-dot"></span> Локальный помощник<p>Вакансии из ваших подборок.<br>Отметки и заметки хранятся<br>в этом браузере.</p></div>
+  </aside>
+  <main>
+    <header><div><p class="breadcrumb">Моя следующая работа</p><h1 id="page-title">Вакансии</h1><p class="subtitle">Собирайте интересное. Выбирайте свой следующий шаг.</p></div><div class="header-actions"><button id="start-search" class="primary" disabled>Найти вакансии</button><button id="refresh" class="primary">Обновить подборки</button></div></header>
+    <p id="search-status" class="search-status" role="status" aria-live="polite">Проверяем состояние поиска…</p>
+    <div id="notice" role="status" hidden></div>
+    <section class="toolbar" aria-label="Фильтры">
+      <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Должность, компания или стек" aria-label="Поиск вакансий"></label>
+      <select id="run" aria-label="Подборка"><option value="">Все подборки</option></select>
+      <select id="source" aria-label="Источник"><option value="">Все источники</option></select>
+      <label class="check"><input id="remote" type="checkbox">Удалённо</label>
+      <label class="check"><input id="salary" type="checkbox">С зарплатой</label>
+    </section>
+    <div class="results-heading"><span id="result-count" aria-live="polite">Загружаем вакансии…</span><button id="reset" class="text-button">Сбросить фильтры</button></div>
+    <div class="inbox"><section id="list" aria-label="Список вакансий"></section><section id="detail" aria-label="Выбранная вакансия"><div class="empty">Выберите вакансию из списка</div></section></div>
+  </main>
+</body>
+</html>

@@ -6,6 +6,10 @@ GOOSE := go run github.com/pressly/goose/v3/cmd/goose@v3.26.0
 
 .DEFAULT_GOAL := help
 
+.PHONY: ui
+ui: ## Open the local vacancy inbox at http://127.0.0.1:8080
+	cd backend/server && go run ./cmd
+
 .PHONY: help db-up db-down db-reset migrate-up migrate-status
 
 help: ## Show this help

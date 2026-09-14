@@ -59,10 +59,14 @@ _spin_resume() {
 cleanup() {
   local spid; spid=$(cat "$SPIN_PID_FILE" 2>/dev/null)
   [ -n "$spid" ] && { kill "$spid" 2>/dev/null; wait "$spid" 2>/dev/null; }
-  printf "\r\033[2K" > /dev/tty 2>/dev/null
+  if [ "$IS_TTY" = 1 ]; then
+    printf "\r\033[2K" > /dev/tty 2>/dev/null || true
+  fi
   rm -f "$SPIN_PID_FILE" "$SPIN_MSG_FILE" "$PHASE_FILE"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # ── log() ────────────────────────────────────────────────────────────────
 log() {
@@ -188,7 +192,7 @@ log "─────────────────────────
 
 set +e
 if [ "$HAS_JQ" -eq 1 ]; then
-  timeout "$TIMEOUT_SEC" claude \
+  timeout --foreground "$TIMEOUT_SEC" claude \
     --print --verbose \
     --model claude-haiku-4-5 \
     --output-format stream-json \
@@ -201,7 +205,7 @@ if [ "$HAS_JQ" -eq 1 ]; then
   EXIT_CODE=${PIPESTATUS[0]}
 else
   log "warn    jq not found — no live progress. Install jq."
-  timeout "$TIMEOUT_SEC" claude \
+  timeout --foreground "$TIMEOUT_SEC" claude \
     --print --model claude-haiku-4-5 \
     --dangerously-skip-permissions \
     --debug-file "$DEBUG_FILE" \
