@@ -12,9 +12,10 @@ import (
 )
 
 type Run struct {
-	ID        string            `json:"id"`
-	FetchedAt json.RawMessage   `json:"fetched_at"`
-	Vacancies []json.RawMessage `json:"vacancies"`
+	SearchFilters json.RawMessage   `json:"search_filters,omitempty"`
+	ID            string            `json:"id"`
+	FetchedAt     json.RawMessage   `json:"fetched_at"`
+	Vacancies     []json.RawMessage `json:"vacancies"`
 }
 type Runs struct {
 	Runs   []Run    `json:"runs"`
@@ -63,5 +64,6 @@ func readRun(path string) (Run, error) {
 		}
 	}
 	run.FetchedAt = export["fetched_at"]
+	run.SearchFilters = export["search_filters"]
 	return run, nil
 }

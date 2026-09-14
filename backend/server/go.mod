@@ -3,11 +3,14 @@ module job-search/server
 go 1.25.0
 
 require (
+	job-search/fetch v0.0.0
 	github.com/gofiber/fiber/v2 v2.52.10
 	github.com/gotify/configor v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 )
+
+replace job-search/fetch => ../fetch
 
 require (
 	github.com/BurntSushi/toml v0.3.0 // indirect

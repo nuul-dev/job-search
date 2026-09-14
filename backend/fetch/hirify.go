@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func fetchHirify(queries []string, cutoff time.Time) []Vacancy {
+func fetchHirify(queries []string, cutoff time.Time, remoteOnly bool) []Vacancy {
 	hirifyCutoff := cutoff.Add(-48 * time.Hour)
 
 	var result []Vacancy
@@ -31,7 +31,7 @@ func fetchHirify(queries []string, cutoff time.Time) []Vacancy {
 				if dedup[link] {
 					continue
 				}
-				if !hirifyIsRemote(v["work_format"]) {
+				if remoteOnly && !hirifyIsRemote(v["work_format"]) {
 					continue
 				}
 				if updated, _ := v["updated_at"].(string); updated != "" {
@@ -54,9 +54,6 @@ func fetchHirify(queries []string, cutoff time.Time) []Vacancy {
 					}
 				}
 				desc, _ := v["tldr"].(string)
-				if len(desc) > 500 {
-					desc = desc[:500]
-				}
 				dedup[link] = true
 				result = append(result, Vacancy{
 					Title:       strings.TrimSpace(title),
@@ -65,7 +62,7 @@ func fetchHirify(queries []string, cutoff time.Time) []Vacancy {
 					Salary:      salary,
 					Source:      "Hirify",
 					Description: desc,
-					Remote:      true,
+					Remote:      hirifyIsRemote(v["work_format"]),
 				})
 			}
 			if !pageHadFresh {
@@ -105,6 +102,9 @@ func fetchHirifyPage(q string, page int) []map[string]any {
 }
 
 func hirifyIsRemote(v any) bool {
+	if s, ok := v.(string); ok {
+		return strings.EqualFold(strings.TrimSpace(s), "remote")
+	}
 	arr, ok := v.([]any)
 	if !ok {
 		return false

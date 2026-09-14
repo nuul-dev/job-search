@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
+
 	"encoding/json"
+	"job-search/fetch/searchoptions"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -26,7 +28,7 @@ func TestInbox(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	search := handlers.NewSearch(time.Minute, func(ctx context.Context) error { <-ctx.Done(); return ctx.Err() })
+	search := handlers.NewSearch(time.Minute, func(ctx context.Context, _ searchoptions.Options) error { <-ctx.Done(); return ctx.Err() })
 	defer search.Close()
 	app := fiber.New()
 	NewInbox(handlers.NewRuns(repository.Files{Root: root}), search, root, 8080).RegisterRoutes(app)
@@ -53,6 +55,9 @@ func TestInbox(t *testing.T) {
 		{"form", "127.0.0.1:8080", "", "text/plain", "{}", 415},
 		{"invalid body", "127.0.0.1:8080", "", "application/json", "null", 400},
 		{"command injection", "127.0.0.1:8080", "", "application/json", `{"command":"anything"}`, 400},
+		{"invalid level", "127.0.0.1:8080", "", "application/json", `{"direction":"backend","levels":["boss"]}`, 400},
+		{"invalid direction", "127.0.0.1:8080", "", "application/json", `{"direction":"../../"}`, 400},
+		{"invalid remote", "127.0.0.1:8080", "", "application/json", `{"remote_only":"true"}`, 400},
 		{"accepted", "127.0.0.1:8080", "http://127.0.0.1:8080", "application/json", "{}", 202},
 		{"duplicate", "127.0.0.1:8080", "", "application/json", "{}", 409},
 	} {

@@ -27,6 +27,9 @@ function filtered() {
   return jobs.filter(j => (!query || `${j.title} ${j.company} ${j.description}`.toLocaleLowerCase().includes(query)) && (!$('run').value || j.runs.includes($('run').value)) && (!$('source').value || j.source === $('source').value) && (!$('remote').checked || j.remote) && (!$('salary').checked || hasSalary(j)) && (view === 'all' ? mark(j).status !== 'hidden' : view === 'saved' ? mark(j).saved : mark(j).status === view));
 }
 function render() {
+  const runFilters = runs.find(run => run.id === $('run').value)?.search_filters;
+  $('run-filters').hidden = !runFilters;
+  $('run-filters').textContent = runFilters ? `Эта подборка: ${filterSummary(runFilters)}` : '';
   for (const key of Object.keys(labels)) $(key + '-count').textContent = jobs.filter(j => key === 'all' ? mark(j).status !== 'hidden' : key === 'saved' ? mark(j).saved : mark(j).status === key).length;
   const visible = filtered();
   if (!visible.some(j => j.id === selected)) selected = visible[0]?.id || null;
@@ -66,8 +69,44 @@ function renderDetail(job) {
   note.oninput = () => { marks[job.id] = {...mark(job), note: note.value}; save(); };
   personal.append(statusLabel, status, noteLabel, note, el('p', 'hint', 'Сохраняется автоматически в этом браузере. Статус — ваша отметка; отправить отклик можно на сайте вакансии.')); panel.append(personal);
 }
+const directionLabels = {profile: 'По профилю', backend: 'Backend', frontend: 'Frontend', fullstack: 'Fullstack', mobile: 'Mobile', devops: 'DevOps / SRE', qa: 'QA', data: 'Data', ai: 'AI / ML', any: 'Любое направление'};
+function searchParameters() {
+  return {
+    direction: $('search-direction').value,
+    levels: [...document.querySelectorAll('[name="search-level"]:checked')].map(input => input.value),
+    query: $('search-query').value.trim(),
+    remote_only: $('search-remote').checked,
+  };
+}
+function filterSummary(filters) {
+  if (!filters) return '';
+  return [directionLabels[filters.direction] || 'По профилю', filters.levels?.length ? filters.levels.join(', ') : filters.direction === 'profile' ? 'уровни из профиля' : 'любой уровень', filters.query, filters.remote_only ? 'удалённо' : 'любой формат'].filter(Boolean).join(' / ');
+}
+try {
+  const saved = JSON.parse(localStorage.getItem('job-inbox-search-options') || 'null');
+  if (saved && Object.hasOwn(directionLabels, saved.direction)) {
+    $('search-direction').value = saved.direction;
+    $('search-query').value = typeof saved.query === 'string' ? saved.query.slice(0, 120) : '';
+    $('search-remote').checked = saved.remote_only === true;
+    document.querySelectorAll('[name="search-level"]').forEach(input => { input.checked = Array.isArray(saved.levels) && saved.levels.includes(input.value); });
+  }
+} catch {}
+function updateLevelHint() { $('level-hint').textContent = $('search-direction').value === 'profile' ? 'Не выбран — из профиля' : 'Не выбран — любой'; }
+updateLevelHint();
+$('search-options').onchange = () => {
+  updateLevelHint();
+  try { localStorage.setItem('job-inbox-search-options', JSON.stringify(searchParameters())); } catch {}
+};
+let runsLoading = false;
 async function load() {
+  if (runsLoading) return;
+  runsLoading = true;
   $('refresh').disabled = true;
+  $('refresh').textContent = 'Обновляем…';
+  $('refresh-feedback').hidden = false;
+  $('refresh-status').textContent = 'Обновляем подборки…';
+  $('refresh-progress').hidden = false;
+  $('list').setAttribute('aria-busy', 'true');
   try {
     const response = await fetch('/api/runs'); if (!response.ok) throw new Error();
     const data = await response.json(); runs = data.runs;
@@ -78,15 +117,27 @@ async function load() {
       else unique.set(id, {...vacancy, id, runs: [run.id]});
     }
     jobs = [...unique.values()];
-    for (const [id, options] of [['run', runs.map(r => [r.id, r.id.replace(/^(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})$/, '$3.$2.$1 $4:$5')])], ['source', [...new Set(jobs.map(j => j.source).filter(Boolean))].sort().map(s => [s,s])]]) {
+    for (const [id, options] of [['run', runs.map(r => [r.id, r.fetched_at && !Number.isNaN(Date.parse(r.fetched_at)) ? new Date(r.fetched_at).toLocaleString('ru-RU') : r.id])], ['source', [...new Set(jobs.map(j => j.source).filter(Boolean))].sort().map(s => [s,s])]]) {
       const select = $(id), previous = select.value; while (select.options.length > 1) select.remove(1);
       for (const [value, text] of options) { const option = el('option', '', text); option.value = value; select.append(option); }
       select.value = options.some(([v]) => v === previous) ? previous : '';
     }
     if (data.errors.length) notice(`Не удалось прочитать подборки: ${data.errors.join(', ')}. Проверьте файлы и обновите страницу.`);
     render();
-  } catch { notice('Не удалось загрузить вакансии. Проверьте, что локальный сервер запущен, и нажмите «Обновить подборки».'); $('result-count').textContent = 'Ошибка загрузки'; }
-  finally { $('refresh').disabled = false; }
+    const time = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    $('refresh-status').textContent = `${data.errors.length ? 'Обновлено частично' : 'Подборки обновлены'} в ${time}. Подборок: ${runs.length}, вакансий: ${jobs.length}.`;
+  } catch {
+    notice('Не удалось загрузить вакансии. Проверьте, что локальный сервер запущен, и нажмите «Обновить подборки».');
+    $('result-count').textContent = 'Ошибка загрузки';
+    $('refresh-status').textContent = 'Не удалось обновить подборки. Попробуйте ещё раз.';
+  }
+  finally {
+    runsLoading = false;
+    $('refresh').disabled = false;
+    $('refresh').textContent = 'Обновить подборки';
+    $('refresh-progress').hidden = true;
+    $('list').setAttribute('aria-busy', 'false');
+  }
 }
 document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => { view = button.dataset.view; $('page-title').textContent = labels[view]; document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b === button)); render(); });
 for (const id of ['search', 'run', 'source', 'remote', 'salary']) $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
@@ -104,6 +155,9 @@ function showSearch(state) {
   $('search-status').dataset.state = state.status;
   $('start-search').disabled = searchRequestPending || state.status === 'running';
   $('start-search').textContent = state.status === 'running' ? 'Поиск идёт…' : 'Найти вакансии';
+  $('search-options').disabled = searchRequestPending || state.status === 'running';
+  $('active-search-filters').hidden = !state.filters || state.status === 'idle';
+  $('active-search-filters').textContent = state.filters ? `Параметры запуска: ${filterSummary(state.filters)}` : '';
   const key = `${state.status}:${state.started_at || ''}`;
   if (['succeeded', 'failed'].includes(state.status) && previousSearch !== key) load();
   previousSearch = key;
@@ -125,11 +179,18 @@ async function pollSearch() {
   }
 }
 $('start-search').onclick = async () => {
+  const parameters = searchParameters();
   searchRequestPending = true;
   $('start-search').disabled = true;
+  $('search-options').disabled = true;
   $('search-status').textContent = 'Запускаем поиск…';
   try {
-    const response = await fetch('/api/search', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'});
+    const response = await fetch('/api/search', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(parameters)});
+    if (response.status === 400) {
+      const data = await response.json();
+      notice(data.error || 'Проверьте параметры поиска.');
+      return;
+    }
     if (!response.ok && response.status !== 409) throw new Error();
   } catch {
     notice('Не удалось подтвердить запуск поиска. Проверяем его состояние; повторно нажать кнопку можно после восстановления связи.');

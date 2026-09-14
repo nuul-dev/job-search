@@ -33,15 +33,49 @@
   </aside>
   <main>
     <header><div><p class="breadcrumb">Моя следующая работа</p><h1 id="page-title">Вакансии</h1><p class="subtitle">Собирайте интересное. Выбирайте свой следующий шаг.</p></div><div class="header-actions"><button id="start-search" class="primary" disabled>Найти вакансии</button><button id="refresh" class="primary">Обновить подборки</button></div></header>
+    <details class="search-setup" open>
+      <summary>Параметры новой подборки</summary>
+      <fieldset id="search-options" class="search-options">
+        <legend class="visually-hidden">Что искать</legend>
+        <label class="option-field" for="search-direction">Направление
+          <select id="search-direction">
+            <option value="profile">По моему профилю</option>
+            <option value="backend">Backend</option><option value="frontend">Frontend</option>
+            <option value="fullstack">Fullstack</option><option value="mobile">Mobile</option>
+            <option value="devops">DevOps / SRE</option><option value="qa">QA</option>
+            <option value="data">Data</option><option value="ai">AI / ML</option>
+            <option value="any">Любое направление</option>
+          </select>
+        </label>
+        <label class="option-field" for="search-query">Ключевые слова
+          <input id="search-query" type="text" maxlength="120" placeholder="Например: Go PostgreSQL" autocomplete="off">
+        </label>
+        <fieldset class="level-options">
+          <legend>Уровень <span id="level-hint">Не выбран — из профиля</span></legend>
+          <label><input type="checkbox" name="search-level" value="junior"> Junior</label>
+          <label><input type="checkbox" name="search-level" value="middle"> Middle</label>
+          <label><input type="checkbox" name="search-level" value="senior"> Senior</label>
+          <label><input type="checkbox" name="search-level" value="lead"> Lead</label>
+        </fieldset>
+        <label class="check"><input id="search-remote" type="checkbox">Только удалённо</label>
+      </fieldset>
+      <p class="hint">Эти параметры применятся после нажатия «Найти вакансии». Для широкого поиска выберите направление вместо профиля. Если указан уровень, вакансии без уровня в названии не попадут в подборку.</p>
+    </details>
     <p id="search-status" class="search-status" role="status" aria-live="polite">Проверяем состояние поиска…</p>
+    <p id="active-search-filters" class="hint" hidden></p>
+    <div id="refresh-feedback" class="refresh-feedback" hidden>
+      <span id="refresh-status" role="status" aria-live="polite"></span>
+      <progress id="refresh-progress" aria-label="Обновление подборок"></progress>
+    </div>
     <div id="notice" role="status" hidden></div>
-    <section class="toolbar" aria-label="Фильтры">
+    <section class="toolbar" aria-label="Фильтры сохранённых вакансий">
       <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Должность, компания или стек" aria-label="Поиск вакансий"></label>
       <select id="run" aria-label="Подборка"><option value="">Все подборки</option></select>
       <select id="source" aria-label="Источник"><option value="">Все источники</option></select>
       <label class="check"><input id="remote" type="checkbox">Удалённо</label>
       <label class="check"><input id="salary" type="checkbox">С зарплатой</label>
     </section>
+    <p id="run-filters" class="hint" hidden></p>
     <div class="results-heading"><span id="result-count" aria-live="polite">Загружаем вакансии…</span><button id="reset" class="text-button">Сбросить фильтры</button></div>
     <div class="inbox"><section id="list" aria-label="Список вакансий"></section><section id="detail" aria-label="Выбранная вакансия"><div class="empty">Выберите вакансию из списка</div></section></div>
   </main>

@@ -39,13 +39,17 @@ func stripCDATA(s string) string {
 	return s
 }
 
-func fetchHH(queries []string, cutoff time.Time) []Vacancy {
+func fetchHH(queries []string, cutoff time.Time, remoteOnly bool) []Vacancy {
 	var result []Vacancy
 	dedup := map[string]bool{}
+	suffixes := []string{"&schedule=remote", ""}
+	if remoteOnly {
+		suffixes = suffixes[:1]
+	}
 
 	for _, q := range queries {
 		enc := url.QueryEscape(q)
-		for _, suffix := range []string{"&schedule=remote", ""} {
+		for _, suffix := range suffixes {
 			u := "https://hh.ru/search/vacancy/rss?text=" + enc + "&area=1&sort_by=publication_time" + suffix
 			body, err := get(u)
 			if err != nil {
@@ -74,12 +78,13 @@ func fetchHH(queries []string, cutoff time.Time) []Vacancy {
 				}
 				dedup[item.Link] = true
 				result = append(result, Vacancy{
-					Title:   strings.TrimSpace(item.Title),
-					URL:     item.Link,
-					Company: company,
-					Salary:  salary,
-					Source:  "hh.ru",
-					Remote:  suffix != "",
+					Title:       strings.TrimSpace(item.Title),
+					URL:         item.Link,
+					Company:     company,
+					Salary:      salary,
+					Source:      "hh.ru",
+					Description: desc,
+					Remote:      suffix != "",
 				})
 			}
 		}

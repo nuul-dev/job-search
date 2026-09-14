@@ -57,12 +57,17 @@ func fetchHabr(queries []string) []Vacancy {
 				}
 			}
 			dedup[href] = true
+			remote, _ := v["remote"].(bool)
+			remote = remote || hirifyIsRemote(v["work_format"])
+			description, _ := v["description"].(string)
 			result = append(result, Vacancy{
-				Title:   strings.TrimSpace(title),
-				URL:     href,
-				Company: company,
-				Salary:  salary,
-				Source:  "Habr Career",
+				Title:       strings.TrimSpace(title),
+				URL:         href,
+				Company:     company,
+				Salary:      salary,
+				Source:      "Habr Career",
+				Remote:      remote,
+				Description: description,
 			})
 		}
 	}

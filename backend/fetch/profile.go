@@ -38,10 +38,10 @@ func loadProfile(repoDir string) (queries, blacklist []string, err error) {
 	}
 	text := string(b)
 	queries = parseSection(text, "Поисковые запросы")
-	if len(queries) == 0 {
-		return nil, nil, fmt.Errorf("'## Поисковые запросы' section is empty — add search terms to user-profile.md")
-	}
 	blacklist = parseSection(text, "Не хочу от этих компаний")
+	if len(queries) == 0 {
+		return nil, blacklist, fmt.Errorf("'## Поисковые запросы' section is empty — add search terms to user-profile.md")
+	}
 	return queries, blacklist, nil
 }
 

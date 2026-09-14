@@ -1,5 +1,7 @@
 package main
 
+import "job-search/fetch/searchoptions"
+
 type Vacancy struct {
 	Title       string `json:"title"`
 	URL         string `json:"url"`
@@ -11,9 +13,10 @@ type Vacancy struct {
 }
 
 type Output struct {
-	FetchedAt  string    `json:"fetched_at"`
-	QueryCount int       `json:"query_count"`
-	Vacancies  []Vacancy `json:"vacancies"`
+	SearchFilters *searchoptions.Options `json:"search_filters,omitempty"`
+	FetchedAt     string                 `json:"fetched_at"`
+	QueryCount    int                    `json:"query_count"`
+	Vacancies     []Vacancy              `json:"vacancies"`
 }
 
 type rssFeed struct {

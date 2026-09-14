@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"mime"
 	"net"
 	"net/url"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"job-search/fetch/searchoptions"
 	"job-search/server/internal/handlers"
 
 	"github.com/gofiber/fiber/v2"
@@ -82,11 +82,11 @@ func (c *Inbox) start(ctx *fiber.Ctx) error {
 	if err != nil || media != "application/json" {
 		return ctx.Status(415).JSON(fiber.Map{"error": "Content-Type must be application/json"})
 	}
-	var body map[string]json.RawMessage
-	if err := json.Unmarshal(ctx.Body(), &body); err != nil || body == nil || len(body) != 0 {
-		return ctx.Status(400).JSON(fiber.Map{"error": "Expected an empty JSON object"})
+	options, err := searchoptions.Decode(ctx.Body())
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
-	state, err := c.search.Start()
+	state, err := c.search.Start(options)
 	if err == handlers.ErrRunning {
 		return ctx.Status(409).JSON(state)
 	}
