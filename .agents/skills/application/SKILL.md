@@ -5,8 +5,8 @@ description: >
   to recruiters. Output is plain-text chat messages for Telegram, hh.ru, or
   email, that sound like a human wrote them — not AI. Mirrors the recruiter's
   tone exactly (casual / friendly / business / direct).
-  Trigger when user asks to write an отклик, ответ рекрутёру, response to a
-  vacancy, or a chat message to an HR.
+  Trigger when user asks to write an отклик, сопроводительное, сопровод,
+  ответ рекрутёру, response to a vacancy, or a chat message to an HR.
 ---
 
 # Job Application Response — Write Like a Human
@@ -82,6 +82,8 @@ Rewrite if you catch any of these:
 3. Одна короткая строка с готовностью/контактом ("Готов выйти на этой неделе, github.com/...").
 4. Короткое человеческое прощание ("Спасибо за уделенное время, хорошего дня!").
 
+**Telegram specifically:** в TG рекрутёр не знает кто ты по нику. Упомяни имя — либо в приветствии ("Привет, меня зовут Илья"), либо в строке с контактом ("Илья, github.com/nuul-dev").
+
 Если хочется добавить ещё детали — не надо, лучше оставить рекрутёру повод задать вопрос.
 
 Для follow-up ответов в `## Переписка` (рекрутёр уже задал конкретный вопрос) — матчим длину под вопрос:
@@ -108,6 +110,7 @@ Rewrite if you catch any of these:
 - Self-praising adjectives ("сильный разработчик", "глубокий опыт").
 - Verbatim copies from the resume.
 - Apologies for gaps. If they ask about something you don't have, say what's adjacent that you do have.
+- Volunteering gaps unprompted. Never mention missing skills or experience in a cold отклик or cover letter — this is for the interview. Only address a gap if the recruiter explicitly asks about it.
 - Promises that overstate ("точно справлюсь", "решу любую задачу").
 
 ## Workflow

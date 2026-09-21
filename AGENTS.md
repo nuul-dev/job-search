@@ -82,3 +82,31 @@ Key principles:
 - Structure: hook → match (2–3 concrete intersections) → value add → short close
 - No filler openers ("I am writing to express my interest...")
 - Ask the user for their contact email before writing — don't hardcode it
+
+## Codex integration
+
+This AGENTS.md adapts the workspace CLAUDE.md for Codex. Launch Codex from
+this repository to load its project instructions and existing local skills.
+
+- Custom agent: `.codex/agents/job-search.toml`.
+- Use `job-search` for ranking fetched vacancies, reports, and application drafts.
+  Its workflow source is `config/search-config.md`; read it on each run.
+- If the available subagent tool has no named-agent selector, read the TOML
+  and pass its `developer_instructions` together with the scoped task to a
+  spawned agent. Inherit the parent model.
+- Existing skills: `.agents/skills/resume/`, `.agents/skills/application/`,
+  `.agents/skills/caveman/`. Read the relevant SKILL.md before applying it.
+- `run-search.sh` still invokes Claude CLI. Creating this Codex agent does
+  not change that script or scheduled runs. Do not use it to launch Codex.
+- Candidate experience and metrics must come from supplied facts. Ask for
+  missing information rather than inventing achievements or numbers.
+- Application text is a draft until the user explicitly authorizes sending.
+
+## Go backend development
+
+- `backend/server/` serves the frontend and manages background searches.
+- Agent roles adapted from hc2/be live in `.codex/agents/go-{orchestrator,integrator,reviewer,tester}.toml`.
+- Use integrator then read-only reviewer for Go changes; orchestrator scopes larger tasks.
+  Read the corresponding TOML and pass its instructions when a named agent is unavailable.
+- Follow controller `RegisterRoutes` → handler → repository layering and env configuration.
+- Automated tests use fake search runners; manual integration tester is invoked only on request.

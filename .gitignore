@@ -5,5 +5,12 @@ jobs/*.md
 playground/
 resumes/
 applications/
-user-profile.md
+config/user-profile.md
 seen-vacancies.txt
+jobs/raw/
+backend/fetch/fetch
+scripts/fetch/fetch
+backend/server/server
+__pycache__/
+*.py[cod]
+interviews/*.md
