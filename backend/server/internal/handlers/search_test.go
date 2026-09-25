@@ -75,13 +75,57 @@ func waitFinished(t *testing.T, s *Search) SearchState {
 	deadline := time.Now().Add(time.Second)
 	for time.Now().Before(deadline) {
 		state := s.Status()
-		if state.Status != "running" {
+		if state.Status != "running" && state.Status != "canceling" {
 			return state
 		}
 		time.Sleep(time.Millisecond)
 	}
 	t.Fatal("search did not finish")
 	return SearchState{}
+}
+
+func TestCancelThenRestart(t *testing.T) {
+	release := make(chan struct{})
+	var calls atomic.Int32
+	s := NewSearch(time.Second, func(ctx context.Context, _ searchoptions.Options) error {
+		if calls.Add(1) > 1 {
+			return nil
+		}
+		<-ctx.Done()
+		<-release
+		return ctx.Err()
+	})
+	defer s.Close()
+	if state := s.Cancel(); state.Status != "idle" {
+		t.Fatal(state)
+	}
+	if _, err := s.Start(searchoptions.Options{}); err != nil {
+		t.Fatal(err)
+	}
+	state := s.Cancel()
+	if state.Status != "canceling" || state.FinishedAt != nil {
+		t.Fatal(state)
+	}
+	if _, err := s.Start(searchoptions.Options{}); !errors.Is(err, ErrRunning) {
+		t.Fatal("started during cancellation", err)
+	}
+	if state := s.Cancel(); state.Status != "canceling" {
+		t.Fatal(state)
+	}
+	close(release)
+	state = waitFinished(t, s)
+	if state.Status != "canceled" || state.Error != "" || state.FinishedAt == nil {
+		t.Fatal(state)
+	}
+	if state := s.Cancel(); state.Status != "canceled" {
+		t.Fatal(state)
+	}
+	if _, err := s.Start(searchoptions.Options{}); err != nil {
+		t.Fatal(err)
+	}
+	if state := waitFinished(t, s); state.Status != "succeeded" {
+		t.Fatal(state)
+	}
 }
 
 func TestSearchPassesIndependentFilters(t *testing.T) {

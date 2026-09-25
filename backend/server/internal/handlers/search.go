@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,27 +22,32 @@ var ErrRunning = errors.New("search already running")
 var ErrClosed = errors.New("server shutting down")
 
 type SearchState struct {
-	Filters    searchoptions.Options `json:"filters"`
-	Status     string                `json:"status"`
-	StartedAt  *time.Time            `json:"started_at"`
-	FinishedAt *time.Time            `json:"finished_at"`
-	Error      string                `json:"error"`
+	Stage          string                `json:"stage"`
+	CompletedSteps int                   `json:"completed_steps"`
+	TotalSteps     int                   `json:"total_steps"`
+	Filters        searchoptions.Options `json:"filters"`
+	Status         string                `json:"status"`
+	StartedAt      *time.Time            `json:"started_at"`
+	FinishedAt     *time.Time            `json:"finished_at"`
+	Error          string                `json:"error"`
 }
 type Runner func(context.Context, searchoptions.Options) error
 type Search struct {
-	mu      sync.Mutex
-	state   SearchState
-	runner  Runner
-	timeout time.Duration
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
-	closed  bool
+	mu        sync.Mutex
+	state     SearchState
+	runner    Runner
+	timeout   time.Duration
+	ctx       context.Context
+	cancel    context.CancelFunc
+	runCancel context.CancelFunc
+	wg        sync.WaitGroup
+	closed    bool
+	runID     uint64
 }
 
 func NewSearch(timeout time.Duration, runner Runner) *Search {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Search{state: SearchState{Status: "idle", Filters: searchoptions.Options{Direction: "profile", Levels: []string{}}}, runner: runner, timeout: timeout, ctx: ctx, cancel: cancel}
+	return &Search{state: SearchState{Status: "idle", TotalSteps: 5, Filters: searchoptions.Options{Direction: "profile", Levels: []string{}}}, runner: runner, timeout: timeout, ctx: ctx, cancel: cancel}
 }
 func (s *Search) snapshot() SearchState {
 	state := s.state
@@ -59,24 +65,54 @@ func (s *Search) Start(options searchoptions.Options) (SearchState, error) {
 	if s.closed {
 		return s.snapshot(), ErrClosed
 	}
-	if s.state.Status == "running" {
+	if s.state.Status == "running" || s.state.Status == "canceling" {
 		return s.snapshot(), ErrRunning
 	}
 	now := time.Now().UTC()
-	s.state = SearchState{Status: "running", StartedAt: &now, Filters: options.Clone()}
+	s.state = SearchState{Status: "running", Stage: "preparing", TotalSteps: 5, StartedAt: &now, Filters: options.Clone()}
+	ctx, cancel := context.WithTimeout(s.ctx, s.timeout)
+	s.runID++
+	runID := s.runID
+	ctx = context.WithValue(ctx, progressContextKey{}, func(stage string) {
+		step, ok := searchStages[stage]
+		if !ok {
+			return
+		}
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.runID != runID || s.state.Status != "running" || step < s.state.CompletedSteps {
+			return
+		}
+		s.state.Stage = stage
+		s.state.CompletedSteps = step
+	})
+	s.runCancel = cancel
 	s.wg.Add(1)
-	go s.run(options.Clone())
+	go s.run(ctx, cancel, options.Clone())
 	return s.snapshot(), nil
 }
-func (s *Search) run(options searchoptions.Options) {
+func (s *Search) Cancel() SearchState {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.state.Status == "running" {
+		s.state.Status = "canceling"
+		s.runCancel()
+	}
+	return s.snapshot()
+}
+func (s *Search) run(ctx context.Context, cancel context.CancelFunc, options searchoptions.Options) {
 	defer s.wg.Done()
-	ctx, cancel := context.WithTimeout(s.ctx, s.timeout)
 	defer cancel()
 	err := s.runner(ctx, options)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	now := time.Now().UTC()
 	s.state.FinishedAt = &now
+	s.runCancel = nil
+	if s.state.Status == "canceling" {
+		s.state.Status = "canceled"
+		return
+	}
 	s.state.Status = "succeeded"
 	if err != nil || ctx.Err() != nil {
 		s.state.Status = "failed"
@@ -88,6 +124,9 @@ func (s *Search) run(options searchoptions.Options) {
 			s.state.Error = "Поиск остановлен вместе с сервером."
 		}
 		logrus.WithError(err).Warn("search failed")
+	} else {
+		s.state.Stage = "finished"
+		s.state.CompletedSteps = s.state.TotalSteps
 	}
 }
 func (s *Search) Close() { s.mu.Lock(); s.closed = true; s.cancel(); s.mu.Unlock(); s.wg.Wait() }
@@ -116,7 +155,8 @@ func CommandRunner(root string) Runner {
 			}
 		}
 		cmd.Env = append(cmd.Env, searchoptions.Env+"="+string(data))
-		cmd.Stdout, cmd.Stderr = log, log
+		cmd.Stdout = io.MultiWriter(log, &progressWriter{ctx: ctx})
+		cmd.Stderr = log
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		cmd.Cancel = func() error {
 			err := syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)

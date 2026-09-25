@@ -35,7 +35,7 @@ function render() {
   if (!visible.some(j => j.id === selected)) selected = visible[0]?.id || null;
   $('result-count').textContent = `Найдено: ${visible.length} из ${jobs.length}`;
   $('list').replaceChildren();
-  if (!visible.length) $('list').append(el('div', 'empty', jobs.length ? 'Подходящих вакансий нет. Попробуйте изменить фильтры или выбрать другой раздел.' : 'Подборок пока нет. Нажмите «Найти вакансии», чтобы собрать первую подборку.'));
+  if (!visible.length) $('list').append(el('div', 'empty', jobs.length ? 'Подходящих вакансий нет. Попробуйте изменить фильтры или выбрать другой раздел.' : 'Подборок пока нет. Нажмите «Найти новые вакансии», чтобы собрать первую подборку.'));
   for (const job of visible) {
     const button = el('button', 'job' + (selected === job.id ? ' selected' : ''));
     button.setAttribute('aria-pressed', String(selected === job.id));
@@ -55,12 +55,15 @@ function renderDetail(job) {
   const meta = el('div', 'meta'); meta.append(el('span', '', job.source), el('span', '', job.remote ? 'Удалённая работа' : 'Формат работы не уточнён')); panel.append(meta);
   const actions = el('div', 'actions'); const url = safeURL(job.url);
   if (url) { const link = el('a', 'primary', 'Открыть вакансию ↗'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; actions.append(link); }
+  const writeLetter = el('button', 'primary', 'Написать сопроводительное письмо');
+  writeLetter.onclick = () => openLetter(job); actions.append(writeLetter);
   const favorite = el('button', 'secondary favorite', mark(job).saved ? '★ В избранном' : '☆ В избранное'); favorite.setAttribute('aria-pressed', String(!!mark(job).saved)); favorite.onclick = () => { marks[job.id] = {...mark(job), saved: !mark(job).saved}; save(); render(); }; actions.append(favorite); panel.append(actions);
   const description = el('section', 'detail-section'); description.append(el('h3', '', 'О вакансии'));
   // Descriptions are untrusted source content: convert markup to inert plain text.
   const parsed = new DOMParser().parseFromString(String(job.description || '').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?\s*>/gi, '\n'), 'text/html');
   parsed.querySelectorAll('script,style,iframe').forEach(n => n.remove());
   description.append(el('div', 'description', parsed.body.textContent.trim() || 'В подборке нет описания. Откройте вакансию на сайте, чтобы посмотреть требования и условия.')); panel.append(description);
+  if (letters.has(job.id)) { const editor = el('section', 'detail-section letter-editor'); panel.append(editor); renderLetter(editor, job); }
   const personal = el('section', 'detail-section'); personal.append(el('h3', '', 'Мои заметки'));
   const statusLabel = el('label', '', 'Статус'); statusLabel.htmlFor = 'status'; const status = el('select'); status.id = 'status';
   for (const [value, text] of [['new','Не разобрано'],['applied','Откликнулся'],['hidden','Отложено']]) { const option = el('option', '', text); option.value = value; status.append(option); }
@@ -102,9 +105,9 @@ async function load() {
   if (runsLoading) return;
   runsLoading = true;
   $('refresh').disabled = true;
-  $('refresh').textContent = 'Обновляем…';
+  $('refresh').textContent = 'Загружаем…';
   $('refresh-feedback').hidden = false;
-  $('refresh-status').textContent = 'Обновляем подборки…';
+  $('refresh-status').textContent = 'Загружаем сохранённые вакансии…';
   $('refresh-progress').hidden = false;
   $('list').setAttribute('aria-busy', 'true');
   try {
@@ -125,41 +128,76 @@ async function load() {
     if (data.errors.length) notice(`Не удалось прочитать подборки: ${data.errors.join(', ')}. Проверьте файлы и обновите страницу.`);
     render();
     const time = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-    $('refresh-status').textContent = `${data.errors.length ? 'Обновлено частично' : 'Подборки обновлены'} в ${time}. Подборок: ${runs.length}, вакансий: ${jobs.length}.`;
+    $('refresh-status').textContent = `${data.errors.length ? 'Список загружен частично' : 'Список загружен'} в ${time}. Подборок: ${runs.length}, вакансий: ${jobs.length}.`;
   } catch {
-    notice('Не удалось загрузить вакансии. Проверьте, что локальный сервер запущен, и нажмите «Обновить подборки».');
+    notice('Не удалось загрузить вакансии. Проверьте, что локальный сервер запущен, и нажмите «Перечитать список».');
     $('result-count').textContent = 'Ошибка загрузки';
-    $('refresh-status').textContent = 'Не удалось обновить подборки. Попробуйте ещё раз.';
+    $('refresh-status').textContent = 'Не удалось перечитать список. Попробуйте ещё раз.';
   }
   finally {
     runsLoading = false;
     $('refresh').disabled = false;
-    $('refresh').textContent = 'Обновить подборки';
+    $('refresh').textContent = 'Перечитать список';
     $('refresh-progress').hidden = true;
     $('list').setAttribute('aria-busy', 'false');
   }
 }
-document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => { view = button.dataset.view; $('page-title').textContent = labels[view]; document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b === button)); render(); });
+document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => { showVacancyWorkspace(); view = button.dataset.view; $('page-title').textContent = labels[view]; document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b === button)); render(); });
 for (const id of ['search', 'run', 'source', 'remote', 'salary']) $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
 $('reset').onclick = () => { for (const id of ['search','run','source']) $(id).value = ''; for (const id of ['remote','salary']) $(id).checked = false; render(); };
 $('refresh').onclick = load;
-let searchTimer, previousSearch = '', searchRequestPending = false, searchPollPending = false;
+let searchTimer, previousSearch = '', searchRequestPending = false, searchPollPending = false, currentSearchState = 'idle';
+function showSearchProgress(state) {
+  const panel = $('search-progress-panel');
+  panel.dataset.state = state.status; panel.dataset.offline = 'false';
+  const visible = state.status !== 'idle';
+  $('search-progress-content').hidden = !visible;
+  const count = Number.isInteger(state.completed_steps) ? Math.max(0, Math.min(5, state.completed_steps)) : null;
+  const progress = $('search-progress');
+  if (count === null) progress.removeAttribute('value'); else progress.value = count;
+  const stageNames = ['preparing', 'hh', 'hirify', 'habr', 'ranking'];
+  [...$('search-stages').children].forEach((item, index) => {
+    const active = state.status === 'running' && stageNames[index] === state.stage;
+    item.classList.toggle('complete', count !== null && index < count);
+    item.classList.toggle('current', active);
+    if (active) item.setAttribute('aria-current', 'step'); else item.removeAttribute('aria-current');
+  });
+  const descriptions = {
+    preparing: 'Подготавливаем запуск поиска.',
+    hh: 'Собираем вакансии с hh.ru.',
+    hirify: 'Собираем вакансии с Hirify.',
+    habr: 'Собираем вакансии с Habr Career.',
+    ranking: 'Вакансии собраны. Агент готовит отчёт и черновики; этот этап может занять несколько минут.',
+    finished: 'Результаты поиска сохранены.',
+  };
+  const prefix = count === null ? '' : `Завершено этапов: ${count} из 5. `;
+  $('search-stage-detail').textContent = prefix + (['running','succeeded'].includes(state.status) ? descriptions[state.stage] || 'Ожидаем сведения о текущем этапе.' : state.status === 'canceling' ? 'Останавливаем текущий процесс.' : 'Показан прогресс на момент остановки.');
+  const started = Date.parse(state.started_at), ended = Date.parse(state.finished_at);
+  if (visible && Number.isFinite(started)) {
+    const seconds = Math.max(0, Math.floor(((Number.isFinite(ended) ? ended : Date.now()) - started) / 1000));
+    $('search-elapsed').textContent = `${Math.floor(seconds / 60)} мин ${seconds % 60} с`;
+  } else $('search-elapsed').textContent = '';
+}
 function showSearch(state) {
+  currentSearchState = state.status;
+  showSearchProgress(state);
   const messages = {
     idle: 'Готов к поиску новых вакансий.',
     running: 'Ищем вакансии и готовим отчёт. Можно продолжать разбирать подборки.',
-    succeeded: 'Поиск завершён. Подборки обновлены.',
+    canceling: 'Останавливаем поиск…',
+    canceled: 'Поиск отменён. Уже сохранённые подборки доступны в списке.',
+    succeeded: 'Поиск на сайтах завершён.',
     failed: 'Поиск завершился с ошибкой. ' + (state.error || 'Попробуйте запустить его снова.'),
   };
   $('search-status').textContent = messages[state.status] || 'Состояние поиска неизвестно.';
   $('search-status').dataset.state = state.status;
-  $('start-search').disabled = searchRequestPending || state.status === 'running';
-  $('start-search').textContent = state.status === 'running' ? 'Поиск идёт…' : 'Найти вакансии';
-  $('search-options').disabled = searchRequestPending || state.status === 'running';
+  $('start-search').disabled = searchRequestPending || state.status === 'canceling';
+  $('start-search').textContent = state.status === 'running' ? 'Отменить поиск' : state.status === 'canceling' ? 'Отменяем…' : 'Найти новые вакансии';
+  $('search-options').disabled = searchRequestPending || ['running', 'canceling'].includes(state.status);
   $('active-search-filters').hidden = !state.filters || state.status === 'idle';
   $('active-search-filters').textContent = state.filters ? `Параметры запуска: ${filterSummary(state.filters)}` : '';
   const key = `${state.status}:${state.started_at || ''}`;
-  if (['succeeded', 'failed'].includes(state.status) && previousSearch !== key) load();
+  if (['succeeded', 'failed', 'canceled'].includes(state.status) && previousSearch !== key) load();
   previousSearch = key;
 }
 async function pollSearch() {
@@ -171,7 +209,8 @@ async function pollSearch() {
     if (!response.ok) throw new Error();
     showSearch(await response.json());
   } catch {
-    $('search-status').textContent = 'Нет связи с поиском. Проверяем подключение…';
+    $('search-progress-panel').dataset.offline = 'true';
+    $('search-status').textContent = 'Нет связи с поиском. Прогресс временно недоступен; восстанавливаем подключение…';
     $('start-search').disabled = true;
   } finally {
     searchPollPending = false;
@@ -179,21 +218,26 @@ async function pollSearch() {
   }
 }
 $('start-search').onclick = async () => {
-  const parameters = searchParameters();
+  if (searchRequestPending || currentSearchState === 'canceling') return;
+  const canceling = currentSearchState === 'running';
+  const parameters = canceling ? {} : searchParameters();
   searchRequestPending = true;
   $('start-search').disabled = true;
   $('search-options').disabled = true;
-  $('search-status').textContent = 'Запускаем поиск…';
+  if (!canceling) showSearchProgress({status: 'running', stage: 'preparing', completed_steps: 0, total_steps: 5, started_at: new Date().toISOString()});
+  $('search-status').textContent = canceling ? 'Останавливаем поиск…' : 'Запускаем поиск…';
+  $('start-search').textContent = canceling ? 'Отменяем…' : 'Запускаем…';
   try {
-    const response = await fetch('/api/search', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(parameters)});
+    const response = await fetch(canceling ? '/api/search/cancel' : '/api/search', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(parameters)});
     if (response.status === 400) {
       const data = await response.json();
       notice(data.error || 'Проверьте параметры поиска.');
       return;
     }
     if (!response.ok && response.status !== 409) throw new Error();
+    showSearch(await response.json());
   } catch {
-    notice('Не удалось подтвердить запуск поиска. Проверяем его состояние; повторно нажать кнопку можно после восстановления связи.');
+    notice(canceling ? 'Не удалось подтвердить отмену. Проверяем состояние поиска; при необходимости повторите отмену.' : 'Не удалось подтвердить запуск поиска. Проверяем его состояние; повторно нажать кнопку можно после восстановления связи.');
   } finally {
     searchRequestPending = false;
     pollSearch();

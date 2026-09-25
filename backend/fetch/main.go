@@ -37,16 +37,19 @@ func main() {
 
 	var all []Vacancy
 
+	fmt.Println("@@JOB_PROGRESS hh")
 	fmt.Print("hh.ru...       ")
 	hh := fetchHH(queries, cutoff, options != nil && options.RemoteOnly)
 	fmt.Printf("%d\n", len(hh))
 	all = append(all, hh...)
 
+	fmt.Println("@@JOB_PROGRESS hirify")
 	fmt.Print("Hirify...      ")
 	hi := fetchHirify(queries, cutoff, options == nil || options.RemoteOnly)
 	fmt.Printf("%d\n", len(hi))
 	all = append(all, hi...)
 
+	fmt.Println("@@JOB_PROGRESS habr")
 	fmt.Print("Habr Career... ")
 	habr := fetchHabr(queries)
 	fmt.Printf("%d\n", len(habr))

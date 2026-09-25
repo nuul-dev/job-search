@@ -12,9 +12,11 @@ import (
 )
 
 type Config struct {
-	Root    string        `env:"JOB_SEARCH_ROOT" default:"../.."`
-	Port    int           `env:"JOB_SEARCH_PORT" default:"8080"`
-	Timeout time.Duration `env:"JOB_SEARCH_TIMEOUT" default:"30m"`
+	Root         string        `env:"JOB_SEARCH_ROOT" default:"../.."`
+	Port         int           `env:"JOB_SEARCH_PORT" default:"8080"`
+	Timeout      time.Duration `env:"JOB_SEARCH_TIMEOUT" default:"30m"`
+	DraftTimeout time.Duration `env:"JOB_DRAFT_TIMEOUT" default:"2m"`
+	DraftModel   string        `env:"JOB_DRAFT_MODEL"`
 }
 
 func Load() (Config, error) {
@@ -22,7 +24,7 @@ func Load() (Config, error) {
 	if err := configor.Load(&c); err != nil {
 		return c, errors.Wrap(err, "load config")
 	}
-	if c.Port < 1 || c.Port > 65535 || c.Timeout <= 0 {
+	if c.Port < 1 || c.Port > 65535 || c.Timeout <= 0 || c.DraftTimeout <= 0 {
 		return c, errors.New("invalid port or timeout")
 	}
 	root, err := filepath.Abs(c.Root)

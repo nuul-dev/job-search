@@ -16,7 +16,9 @@
     })();
   </script>
   <link rel="stylesheet" href="/style.css">
+  <script src="/letters.js" defer></script>
   <script src="/app.js" defer></script>
+  <script src="/resumes.js" defer></script>
 </head>
 <body>
   <aside class="sidebar">
@@ -28,11 +30,14 @@
       <button class="nav" data-view="applied">Откликнулся <span id="applied-count">0</span></button>
       <button class="nav" data-view="hidden">Отложено <span id="hidden-count">0</span></button>
     </nav>
+    <button id="resumes-nav" class="nav resumes-nav">Мои резюме <span aria-hidden="true">▤</span></button>
     <button id="theme-toggle" class="secondary theme-toggle" type="button" aria-pressed="true"><span>Тёмная тема</span><span aria-hidden="true" id="theme-icon">☾</span></button>
     <div class="sidebar-note"><span class="local-dot"></span> Локальный помощник<p>Вакансии из ваших подборок.<br>Отметки и заметки хранятся<br>в этом браузере.</p></div>
   </aside>
   <main>
-    <header><div><p class="breadcrumb">Моя следующая работа</p><h1 id="page-title">Вакансии</h1><p class="subtitle">Собирайте интересное. Выбирайте свой следующий шаг.</p></div><div class="header-actions"><button id="start-search" class="primary" disabled>Найти вакансии</button><button id="refresh" class="primary">Обновить подборки</button></div></header>
+    <div id="vacancy-workspace">
+    <header><div><p class="breadcrumb">Моя следующая работа</p><h1 id="page-title">Вакансии</h1><p class="subtitle">Собирайте интересное. Выбирайте свой следующий шаг.</p></div><div class="header-actions"><button id="start-search" class="primary" disabled>Найти новые вакансии</button></div></header>
+    <p class="search-explanation">«Найти новые вакансии» запускает поиск на hh.ru, Hirify и Habr Career по параметрам ниже. Найденное появится в списке автоматически.</p>
     <details class="search-setup" open>
       <summary>Параметры новой подборки</summary>
       <fieldset id="search-options" class="search-options">
@@ -59,14 +64,17 @@
         </fieldset>
         <label class="check"><input id="search-remote" type="checkbox">Только удалённо</label>
       </fieldset>
-      <p class="hint">Эти параметры применятся после нажатия «Найти вакансии». Для широкого поиска выберите направление вместо профиля. Если указан уровень, вакансии без уровня в названии не попадут в подборку.</p>
+      <p class="hint">Эти параметры применятся после нажатия «Найти новые вакансии». Для широкого поиска выберите направление вместо профиля. Если указан уровень, вакансии без уровня в названии не попадут в подборку.</p>
     </details>
-    <p id="search-status" class="search-status" role="status" aria-live="polite">Проверяем состояние поиска…</p>
+    <section id="search-progress-panel" class="search-progress-panel" aria-label="Ход поиска">
+      <div class="search-progress-heading"><p id="search-status" class="search-status" role="status" aria-live="polite">Проверяем состояние поиска…</p><span id="search-elapsed" class="hint"></span></div>
+      <div id="search-progress-content" hidden>
+        <progress id="search-progress" max="5" value="0" aria-label="Завершённые этапы поиска"></progress>
+        <ol class="search-stages" id="search-stages"><li>Подготовка</li><li>hh.ru</li><li>Hirify</li><li>Habr Career</li><li>Разбор результатов</li></ol>
+        <p id="search-stage-detail" class="hint"></p>
+      </div>
+    </section>
     <p id="active-search-filters" class="hint" hidden></p>
-    <div id="refresh-feedback" class="refresh-feedback" hidden>
-      <span id="refresh-status" role="status" aria-live="polite"></span>
-      <progress id="refresh-progress" aria-label="Обновление подборок"></progress>
-    </div>
     <div id="notice" role="status" hidden></div>
     <section class="toolbar" aria-label="Фильтры сохранённых вакансий">
       <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Должность, компания или стек" aria-label="Поиск вакансий"></label>
@@ -76,8 +84,25 @@
       <label class="check"><input id="salary" type="checkbox">С зарплатой</label>
     </section>
     <p id="run-filters" class="hint" hidden></p>
-    <div class="results-heading"><span id="result-count" aria-live="polite">Загружаем вакансии…</span><button id="reset" class="text-button">Сбросить фильтры</button></div>
+    <div class="results-heading"><span id="result-count" aria-live="polite">Загружаем вакансии…</span><div class="list-actions"><button id="reset" class="text-button">Сбросить фильтры</button><button id="refresh" class="secondary" title="Перечитать сохранённые результаты. Новый поиск на сайтах не запускается.">Перечитать список</button></div></div>
+    <div id="refresh-feedback" class="refresh-feedback" hidden>
+      <span id="refresh-status" role="status" aria-live="polite"></span>
+      <progress id="refresh-progress" aria-label="Загрузка сохранённых вакансий"></progress>
+    </div>
+    <p class="list-explanation">Здесь сохранённые вакансии. «Перечитать список» загружает их заново без поиска на сайтах.</p>
     <div class="inbox"><section id="list" aria-label="Список вакансий"></section><section id="detail" aria-label="Выбранная вакансия"><div class="empty">Выберите вакансию из списка</div></section></div>
+    </div>
+    <section id="resume-workspace" hidden aria-label="Мои резюме">
+      <header><div><p class="breadcrumb">Опыт, с которым вы идёте дальше</p><h1>Мои резюме</h1><p class="subtitle">Храните версии под разные роли и выбирайте нужную для отклика.</p></div>
+        <div class="header-actions"><button id="resume-upload" class="secondary">Загрузить файл</button><button id="resume-new" class="primary">Создать резюме</button></div>
+      </header>
+      <input id="resume-file" type="file" accept=".pdf,.md" hidden>
+      <p id="resume-feedback" class="hint" role="status" aria-live="polite">PDF до 8 МБ или Markdown до 100 КБ.</p>
+      <div class="resume-layout">
+        <aside class="resume-library"><div class="resume-library-heading"><h2>Ваши версии</h2><button id="resume-refresh" class="text-button" aria-label="Обновить список резюме">Обновить</button></div><div id="resume-list"></div></aside>
+        <section class="resume-document" id="resume-document" aria-label="Редактор резюме"><div class="empty">Выберите резюме слева или создайте новое.<br>Отдельная версия поможет подготовиться к другой роли.</div></section>
+      </div>
+    </section>
   </main>
 </body>
 </html>

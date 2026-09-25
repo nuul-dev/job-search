@@ -73,7 +73,34 @@ func TestInbox(t *testing.T) {
 			if res.StatusCode != tc.status {
 				t.Fatalf("got %d want %d", res.StatusCode, tc.status)
 			}
+			if tc.status >= 400 && tc.status != 409 {
+				req := httptest.NewRequest("POST", "http://"+tc.host+"/api/search/cancel", strings.NewReader(tc.body))
+				req.Header.Set("Content-Type", tc.media)
+				req.Header.Set("Origin", tc.origin)
+				res, err := app.Test(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer res.Body.Close()
+				if res.StatusCode != tc.status {
+					t.Fatalf("cancel: got %d want %d", res.StatusCode, tc.status)
+				}
+			}
 		})
+	}
+	req := httptest.NewRequest("POST", "http://127.0.0.1:8080/api/search/cancel", strings.NewReader("{}"))
+	req.Header.Set("Content-Type", "application/json")
+	res, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	var state handlers.SearchState
+	if err := json.NewDecoder(res.Body).Decode(&state); err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 || state.Status != "canceling" {
+		t.Fatalf("cancel: %d %+v", res.StatusCode, state)
 	}
 	for _, path := range []string{"/run-search.sh", "/config/user-profile.md", "/logs/web-search.log", "/../config/user-profile.md"} {
 		res, err := app.Test(httptest.NewRequest("GET", "http://127.0.0.1:8080"+path, nil))

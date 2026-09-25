@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"mime"
 	"net"
 	"net/url"
@@ -36,11 +37,14 @@ func (c *Inbox) RegisterRoutes(router fiber.Router) {
 	})
 	router.Get("/api/runs", c.list)
 	router.Get("/api/search", func(ctx *fiber.Ctx) error { return ctx.JSON(c.search.Status()) })
-	router.Post("/api/search", c.start)
+	router.Post("/api/search", localJSON, c.start)
+	router.Post("/api/search/cancel", localJSON, c.cancel)
 	for route, asset := range map[string]struct{ name, mime string }{
-		"/":          {"index.html", "text/html; charset=utf-8"},
-		"/app.js":    {"app.js", "text/javascript; charset=utf-8"},
-		"/style.css": {"style.css", "text/css; charset=utf-8"},
+		"/":           {"index.html", "text/html; charset=utf-8"},
+		"/app.js":     {"app.js", "text/javascript; charset=utf-8"},
+		"/letters.js": {"letters.js", "text/javascript; charset=utf-8"},
+		"/resumes.js": {"resumes.js", "text/javascript; charset=utf-8"},
+		"/style.css":  {"style.css", "text/css; charset=utf-8"},
 	} {
 		router.Get(route, func(ctx *fiber.Ctx) error {
 			data, err := os.ReadFile(filepath.Join(c.root, "frontend", asset.name))
@@ -68,20 +72,42 @@ func (c *Inbox) list(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(result)
 }
-func (c *Inbox) start(ctx *fiber.Ctx) error {
+func checkOrigin(ctx *fiber.Ctx) error {
 	if origin := ctx.Get("Origin"); origin != "" {
 		u, err := url.Parse(origin)
 		if err != nil || u.Scheme != "http" || u.Host != string(ctx.Request().Host()) || u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
-			return ctx.Status(403).JSON(fiber.Map{"error": "Foreign origin"})
+			return fiber.NewError(403, "Foreign origin")
 		}
 	}
 	if site := ctx.Get("Sec-Fetch-Site"); site != "" && site != "same-origin" && site != "none" {
-		return ctx.SendStatus(403)
+		return fiber.NewError(403, "Foreign origin")
+	}
+	return nil
+}
+func localOrigin(ctx *fiber.Ctx) error {
+	if err := checkOrigin(ctx); err != nil {
+		return err
+	}
+	return ctx.Next()
+}
+func localJSON(ctx *fiber.Ctx) error {
+	if err := checkOrigin(ctx); err != nil {
+		return err
 	}
 	media, _, err := mime.ParseMediaType(ctx.Get("Content-Type"))
 	if err != nil || media != "application/json" {
 		return ctx.Status(415).JSON(fiber.Map{"error": "Content-Type must be application/json"})
 	}
+	return ctx.Next()
+}
+func (c *Inbox) cancel(ctx *fiber.Ctx) error {
+	var body map[string]json.RawMessage
+	if err := json.Unmarshal(ctx.Body(), &body); err != nil || body == nil || len(body) != 0 {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Ожидается пустой JSON-объект"})
+	}
+	return ctx.JSON(c.search.Cancel())
+}
+func (c *Inbox) start(ctx *fiber.Ctx) error {
 	options, err := searchoptions.Decode(ctx.Body())
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
